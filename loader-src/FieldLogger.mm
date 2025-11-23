@@ -3412,17 +3412,6 @@ static void CrossbowModded()
     Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_crossbow"), GetCamPosition(), 0, 0, 0);
     Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, crossbowType);
 
-
-    auto nm_f_instance = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
-    if (!nm_f_instance || !nm_f_instance->methodPointer);
-    auto get_instance  = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
-
-    Il2CppObject* nsInstance = get_instance();
-
-    Il2CppObject* _grabbable = nullptr;
-    FieldInfo* f_grabbable = s_class_get_field_from_name(NetSpectator, "_grabbable");
-    s_field_get_value(nsInstance, f_grabbable, &_grabbable);
-
     Il2CppObject* _attachAnchor = nullptr;
     FieldInfo* f_attachAnchor = s_class_get_field_from_name(Crossbow, "_attachAnchor");
     s_field_get_value(crossb, f_attachAnchor, &_attachAnchor);
