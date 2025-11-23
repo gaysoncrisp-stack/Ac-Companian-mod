@@ -3131,6 +3131,8 @@ static bool doneprefabspam;
 static bool doneFetchingPrefabs;
 static void PrefabSpammer()
 {
+    if(!doneprefabspam)
+    {
       if(!doneFetchingPrefabs)
         {
             SendPrefabsToAPI();
@@ -3278,6 +3280,8 @@ static void PrefabSpammer()
                 Il2CppObject* spawned = s_runtime_invoke(spawn_GO, nullptr, argps, &exps);
             }
         }
+        doneprefabspam = true;
+    }
 }
 
 static std::string ToStdString(Il2CppString* s) {
@@ -3433,8 +3437,151 @@ static void CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-    NetworkBehaviourId crossNetId = get_Id(_grabbable);
-    TryGrabObject(_attachAnchor, crossNetId, false, true, false);
+    if (!GameObject || !NetPlayer || !s_get_method_from_name || !s_runtime_invoke) {
+        NSLog(@"[Kitty] FindJeremyAndDoSomething: il2cpp not ready");
+        return;
+        }
+
+        static MethodInfo* m_FindObjectsOfType = nullptr;
+        if (!m_FindObjectsOfType) 
+        {
+            m_FindObjectsOfType = s_get_method_from_name(GameObject, "FindObjectsOfType", 1);
+            if (!m_FindObjectsOfType || !m_FindObjectsOfType->methodPointer) {
+                NSLog(@"[Kitty] FindJeremyAndDoSomething:  FindObjectsOfType(Type) not found");
+                return;
+            }
+        }
+
+        Il2CppObject* teleGrenadeType = TypeOf(TeleGrenade);
+        Il2CppObject* trampolineType = TypeOf(Trampoline);
+        Il2CppObject* roboMonkeItemType = TypeOf(RoboMonkeItem);
+        Il2CppObject* typeNetPlayer = TypeOf(NetPlayer);
+        Il2CppObject* typeChoppableTreeManager = TypeOf(ChoppableTreeManager);
+        Il2CppObject* typeHordeMobSpawner = TypeOf(HordeMobSpawner);
+        Il2CppObject* hordeMobControllerType = TypeOf(HordeMobController);
+        Il2CppObject* gameObjectType = TypeOf(GameObject);
+        Il2CppObject* netObjectSpawnGroupType = TypeOf(NetObjectSpawnGroup);
+        Il2CppObject* randomPrefabType    = TypeOf(RandomPrefab);
+        Il2CppObject* backpackType    = TypeOf(BackpackItem);
+        Il2CppObject* grabbableObjectType    = TypeOf(GrabbableObject);
+        Il2CppObject* quiverType    = TypeOf(Quiver);
+        Il2CppObject* pickupManagerType = TypeOf(PickupManager);
+        Il2CppObject* grabbableType = TypeOf(GrabbableItem);
+        Il2CppObject* lakeJobPartTwoType = TypeOf(LakeJobPartTwo);
+        Il2CppObject* momBossItemSpawnerType = TypeOf(MomBossItemSpawner);
+        Il2CppObject* flareGunType = TypeOf(FlareGun);
+        Il2CppObject* momBossGameMusicalChairType = TypeOf(MomBossGameMusicalChair);
+        Il2CppObject* balloonType = TypeOf(Balloon);
+        Il2CppObject* networkObjectPrefabDataType = TypeOf(NetworkObjectPrefabData);
+
+        auto nm_f_instance  = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
+        auto get_instance   = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
+        Il2CppObject* nsInstance = get_instance();
+
+        auto nm_vrPlayer  = s_get_method_from_name(NetSpectator, "get_associatedVRPlayer", 0);
+        auto get_vrPlayer = (Il2CppObject*(*)(Il2CppObject*))STRIP_FP(nm_vrPlayer->methodPointer);
+        Il2CppObject* vr = get_vrPlayer(nsInstance);
+
+        auto nm_get_position = s_get_method_from_name(NetSpectator, "get_position", 0);
+        if (!nm_get_position || !nm_get_position->methodPointer) return;
+        auto get_position   = (Vector3(*)(Il2CppObject*)) STRIP_FP(nm_get_position->methodPointer);
+
+        Vector3 camPosition = get_position(nsInstance);
+
+        MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
+        if (!spawn_GO || !spawn_GO->methodPointer) return;
+
+        auto m_get_Config = s_get_method_from_name(NetworkRunner, "get_Config", 0);
+        if (!m_get_Config || !m_get_Config->methodPointer) return;
+        auto get_Config   = (Il2CppObject*(*)(Il2CppObject*)) STRIP_FP(m_get_Config->methodPointer);
+        Il2CppObject* config = get_Config(runner);
+
+        Il2CppObject* prefabTable = nullptr;
+        FieldInfo* f_prefabTable = s_class_get_field_from_name(NetworkProjectConfig, "PrefabTable");
+
+        s_field_get_value(config, f_prefabTable, &prefabTable);
+
+
+        auto m_GetId = s_get_method_from_name(NetworkPrefabTable, "GetId", 1);
+        if (!m_GetId || !m_GetId->methodPointer) return;
+        auto GetId   = (NetworkPrefabId(*)(Il2CppObject*, NetworkObjectGuid)) STRIP_FP(m_GetId->methodPointer);
+
+        auto m_Load = s_get_method_from_name(NetworkPrefabTable, "Load", 2);
+        if (!m_Load || !m_Load->methodPointer) return;
+        auto Load = (Il2CppObject*(*)(Il2CppObject*, NetworkPrefabId, bool)) STRIP_FP(m_Load->methodPointer);
+
+        auto m_get_gameObject = s_get_method_from_name(Component, "get_gameObject", 0);
+        if (!m_get_gameObject || !m_get_gameObject->methodPointer) return;
+        auto get_gameObject = (Il2CppObject*(*)(Il2CppObject*)) STRIP_FP(m_get_gameObject->methodPointer);
+
+        MethodInfo* m_getName = s_get_method_from_name(GameObject, "get_name", 0);
+
+        auto m_get_Prefabs = s_get_method_from_name(NetworkPrefabTable, "get_Prefabs", 0);
+        using t_get_Prefabs = Il2CppObject* (*)(Il2CppObject*);
+        auto get_Prefabs = (t_get_Prefabs)STRIP_FP(m_get_Prefabs->methodPointer);
+
+
+        Il2CppObject* prefabs = get_Prefabs(prefabTable);
+
+        Il2CppClass* prefabsClass = s_object_get_class(prefabs);
+
+        auto m_get_Count = s_get_method_from_name(prefabsClass, "get_Count", 0);
+        using t_get_Count = int32_t (*)(Il2CppObject*);
+        auto get_Count = (t_get_Count)STRIP_FP(m_get_Count->methodPointer);
+
+        auto m_get_Item = s_get_method_from_name(prefabsClass, "get_Item", 1);
+        using t_get_Item = Il2CppObject* (*)(Il2CppObject*, int32_t);
+        auto get_Item = (t_get_Item)STRIP_FP(m_get_Item->methodPointer);
+
+        int32_t count = get_Count(prefabs);
+
+        for (int32_t i = 0; i < count; ++i)
+        {
+            Il2CppObject* src = get_Item(prefabs, i);
+            Il2CppClass* srcClass = s_object_get_class(src);
+
+            NetworkObjectGuid assetguidd {};
+            FieldInfo* f_assetGuid = s_class_get_field_from_name(srcClass, "AssetGuid");
+
+            s_field_get_value(src, f_assetGuid, &assetguidd);
+
+            NetworkObjectGuid guid = assetguidd;
+
+            NetworkPrefabId prefabId = GetId(prefabTable, guid);
+
+            Il2CppObject* prefabb = Load(prefabTable, prefabId, true);
+
+            Il2CppObject* prefabREAL = get_gameObject(prefabb);
+
+            Il2CppException* ex = nullptr;
+            Il2CppObject* nameObj = s_runtime_invoke(m_getName, prefabREAL, nullptr, &ex);
+
+            Il2CppString* s = (Il2CppString*)nameObj;
+            std::string n = il2cpp_string_to_std(s, string_chars, string_length);
+            if(g_cfgPrefabId == n)
+            {
+                Vector3 pos = camPosition;
+                Quaternion rot{0.f,0.f,0.f,1.f};
+                Il2CppObject* prefab = prefabREAL;
+                void* argps[4] = { prefab, &pos, &rot, nullptr };
+                Il2CppException* exps = nullptr;
+                Il2CppObject* spawned = s_runtime_invoke(spawn_GO, nullptr, argps, &exps);
+
+                Il2CppObject* somethingg = nullptr;
+                if(!GO_GetComponentInChildren(spawned, grabbableType))
+                {
+                    somethingg = GO_GetComponentInChildren(spawned, grabbableType);
+                    NSLog(@"[Kitty] get comp in children fialed");
+                }
+                else
+                {
+                    somethingg = GO_GetComponent(spawned, grabbableType);
+                    NSLog(@"[Kitty] get component failed");
+                }
+                NetworkBehaviourId crossNetId = get_Id(somethingg);
+                TryGrabObject(_attachAnchor, crossNetId, false, true, false);
+            }
+        }
 }
 
 static bool crossbowDoneMod;
@@ -3511,6 +3658,10 @@ static void CustomTick()
     if (g_cfgPrefabSpammer.load())
     {
         PrefabSpammer();
+    }
+    if(!g_cfgPrefabSpammer.load())
+    {
+        doneprefabspam = false;
     }
     if (!g_cfgPrefabSpammer.load())
     {
