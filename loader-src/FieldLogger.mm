@@ -3410,7 +3410,7 @@ static void CrossbowModded()
 
 
     auto nm_f_instance = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
-    if (!nm_f_instance || !nm_f_instance->methodPointer) return zero;
+    if (!nm_f_instance || !nm_f_instance->methodPointer);
     auto get_instance  = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
 
     Il2CppObject* nsInstance = get_instance();
@@ -3437,6 +3437,8 @@ static void CrossbowModded()
     TryGrabObject(_attachAnchor, crossNetId, false, true, false);
 }
 
+static bool crossbowDoneMod;
+
 static void CustomTick()
 {   
     if(g_cfgRefreshPlayers.load())
@@ -3454,7 +3456,11 @@ static void CustomTick()
     if(g_cfgSpamNut.load())
     {
         //NutSpammer();
-
+        if(!crossbowDoneMod)
+        {
+            CrossbowModded();
+            crossbowDoneMod = true;
+        }
     }
     if (g_cfgFlingAll.load())
     {
