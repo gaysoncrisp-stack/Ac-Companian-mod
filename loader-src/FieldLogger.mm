@@ -3455,7 +3455,6 @@ static void CrossbowModded()
         Il2CppObject* grabbableObjectType    = TypeOf(GrabbableObject);
         Il2CppObject* quiverType    = TypeOf(Quiver);
         Il2CppObject* pickupManagerType = TypeOf(PickupManager);
-        Il2CppObject* grabbableType = TypeOf(GrabbableItem);
         Il2CppObject* lakeJobPartTwoType = TypeOf(LakeJobPartTwo);
         Il2CppObject* momBossItemSpawnerType = TypeOf(MomBossItemSpawner);
         Il2CppObject* flareGunType = TypeOf(FlareGun);
