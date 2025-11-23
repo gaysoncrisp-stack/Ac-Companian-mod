@@ -1,0 +1,52 @@
+name: Build ACMod Dylib
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    env:
+      IOS_DEPLOY: "12.0"
+      OUT_DIR: build
+      OUT_DYLIB: build/libACMod.dylib
+      DOBBY_INC: vendor/dobby-prebuilt
+      DOBBY_LIB: vendor/dobby-prebuilt/iphoneos/arm64/libdobby.a
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build dylib with clang++
+        run: |
+          mkdir -p "$OUT_DIR"
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          clang++ -std=c++20 -arch arm64 \
+            -isysroot "$SDK_PATH" \
+            -miphoneos-version-min=${IOS_DEPLOY} \
+            -dynamiclib \
+            loader-src/FieldLogger.mm \
+            loader-src/KittyMemory/KittyMemory.cpp \
+            loader-src/KittyMemory/KittyUtils.cpp \
+            loader-src/KittyMemory/KittyScanner.cpp \
+            loader-src/KittyMemory/KittyAsm.cpp \
+            -Iloader-src/KittyMemory \
+            -I"$DOBBY_INC" \
+            "$DOBBY_LIB" \
+            -framework Foundation \
+            -lc++ -lc++abi \
+            -Wl,-dead_strip \
+            -Wl,-undefined,dynamic_lookup \
+            -o "$OUT_DYLIB"
+          codesign -s - "$OUT_DYLIB" || true
+          file "$OUT_DYLIB"
+          otool -L "$OUT_DYLIB"
+
+      - name: Upload dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: ACMod.dylib
+          path: ${{ env.OUT_DYLIB }}
