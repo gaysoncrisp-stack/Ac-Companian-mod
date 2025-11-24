@@ -2109,6 +2109,87 @@ static void SpawnQuiverWithContents()
     }
 }
 
+static void SpawnGrenadeLauncherWithContents()
+{
+     if (!PrefabGenerator || !GrabbableItem || !BackpackItem || !GameObject ||
+            !g_SpawnItem || !GO_GetComponentInChildren || !s_get_method_from_name || !s_runtime_invoke)
+            {
+                NSLog(@"[Kitty] SpawnBanana: required il2cpp symbols/classes missing");
+                return;
+            }
+
+            auto mComp_getGO = s_get_method_from_name(Component,       "get_gameObject",      0);
+            auto mSetScale   = s_get_method_from_name(GrabbableObject, "set_scaleModifier",   1);
+            auto mSetSat     = s_get_method_from_name(GrabbableObject, "set_colorSaturation", 1);
+            auto mSetHue     = s_get_method_from_name(GrabbableObject, "set_colorHue",        1);
+
+            Il2CppObject* grItemType = nullptr;
+            if (s_type_get_object && GrabbableItem)
+                grItemType = s_type_get_object(&GrabbableItem->byval_arg);
+
+            std::vector<ChildSpec> children;
+            {
+                std::lock_guard<std::mutex> lk(g_cfgMd);
+                children = g_cfgChildren;
+            }
+
+            Il2CppObject* backpackType    = TypeOf(BackpackItem);
+            Il2CppObject* quiverType    = TypeOf(Quiver);
+            Il2CppObject* grabbableType = TypeOf(GrabbableItem);
+            Il2CppObject* glType = TypeOf(GrenadeLauncher);
+
+            auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+            if (!m_TryAddItem || !m_TryAddItem->methodPointer) {
+                NSLog(@"[Kitty] SpawnBanana: BackpackItem.TryAddItem not found");
+                return;
+            }
+            auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+
+            uint8_t hueB = clamp_u8((float)g_cfgQHue.load());
+            int8_t satSb = clamp_i8((float)g_cfgQSat.load());
+            int8_t scaleB = clamp_i8((float)g_cfgQScale.load());
+
+            Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_grenade_launcher"), GetCamPosition(), (int8_t)scaleB, (int8_t)satSb, (uint8_t)hueB);
+            if (!goQuiver) 
+            {
+                NSLog(@"[Kitty] SpawnBanana: failed to spawn quiver");
+                return;
+            }
+
+            Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, glType);
+            if (!quiver) 
+            {
+                NSLog(@"[Kitty] SpawnBanana: quiver not found on spawned object");
+                return;
+            }
+
+            for (const ChildSpec& cs : children)
+            {
+                NSLog(@"[Kitty] child itemId=%s ammo=%d hue=%d sat=%d scale=%d", cs.itemId.c_str(), cs.ammo, cs.colorHue, cs.colorSat, cs.scale);
+
+                if (cs.itemId.empty()) {
+                    continue;
+                }
+
+                std::string fullPath = "item_prefab/" + cs.itemId;
+                Il2CppString* prefabName = CreateMonoString(fullPath.c_str());
+
+                Il2CppObject* goItem = SpawnItem(prefabName, GetCamPosition(), (int8_t)cs.scale, (int8_t)cs.colorSat, (uint8_t)cs.colorHue);
+
+                Il2CppObject* grabbable = GO_GetComponentInChildren(goItem, grabbableType);
+
+                SetEquippingConfig(grabbable);
+
+                bool ok = TryAddItem(quiver, grabbable);
+
+                if(g_netId.load() != -1)
+                {
+                    SetQuiverNetId(quiver, g_netId.load());
+                }
+                NSLog(@"[Kitty] CheckToAddItem -> %d for %s", (int)ok, fullPath.c_str());
+            }
+}
+
 static void SendNetPlayersToAPI()
 {
     if (!GameObject || !NetPlayer || !s_get_method_from_name || !s_runtime_invoke) {
@@ -3420,7 +3501,12 @@ static void CustomTick()
     if (g_cfgFlingAll.load())
     {
         //FlingAll();
-        CrossbowChildren();
+        //CrossbowChildren();
+        if(!CrossbowsDone)
+        {
+            SpawnGrenadeLauncherWithContents();
+            CrossbowsDone = true;
+        }
     }
     if(!g_cfgFlingAll.load())
     {
