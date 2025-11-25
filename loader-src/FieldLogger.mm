@@ -2972,14 +2972,14 @@ static void ExecutePlayerAction()
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SSetColorHue(crossb, 50000.f);
-                SSetColorSaturation(crossb, 50000.f);
+                SSetColorHue(crossb, 255.f);
+                SSetColorSaturation(crossb, 127.f);
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetNormalizedScaleModifier(crossb, 50000.f);
+                SetNormalizedScaleModifier(crossb, 50000500005000050000.f);
             }
         }
     }
