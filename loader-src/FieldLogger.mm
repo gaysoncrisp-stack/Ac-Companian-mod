@@ -2961,15 +2961,14 @@ static void ExecutePlayerAction()
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetMass(crossb, 50000500005000050000.f);
+                SetMass(crossb, 5000050000.f);
             }
             if(g_cfgTargetAction == "Light Stick")
             {
-                float ninf = -std::numeric_limits<float>::infinity();
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetColorHue(crossb, ninf);
-                SetColorSaturation(crossb, ninf);
+                SetColorHue(crossb, 50000.f);
+                SetColorSaturation(crossb, 50000.f);
             }
         }
     }
