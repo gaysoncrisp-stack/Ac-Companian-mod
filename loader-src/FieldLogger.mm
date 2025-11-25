@@ -397,6 +397,7 @@ static Il2CppClass* MomBossGameMusicalChair = nullptr;
 static Il2CppClass* Balloon = nullptr;
 static Il2CppClass* HttpRequestAdapter = nullptr;
 static Il2CppClass* CutieController = nullptr;
+static Il2CppClass* NetworkBehaviour;
 
 struct Vector3 { float x,y,z; };
 struct Quaternion { float x,y,z,w; };
@@ -2606,6 +2607,7 @@ static void ExecutePlayerAction()
     Il2CppObject* quiverType    = TypeOf(Quiver);
     Il2CppObject* pickupManagerType = TypeOf(PickupManager);
     Il2CppObject* grabbableType = TypeOf(GrabbableItem);
+    Il2CppObject* grabbableObjectType = TypeOf(GrabbableObject);
     Il2CppObject* lakeJobPartTwoType = TypeOf(LakeJobPartTwo);
     Il2CppObject* momBossItemSpawnerType = TypeOf(MomBossItemSpawner);
     Il2CppObject* flareGunType = TypeOf(FlareGun);
@@ -3612,7 +3614,6 @@ static void CrossbowModded()
     if(!Crossbow || !NetworkBehaviour)
     {
         Crossbow = classMap["AnimalCompany"]["Crossbow"];
-        NetworkBehaviour = classMap["Fusion"]["NetworkBehaviour"];
     }
 
     Il2CppObject* grabbableItemType = TypeOf(GrabbableItem);
@@ -3874,6 +3875,7 @@ void initStuff(MemoryFileInfo framework)
     HttpRequestAdapter            = classMap["AnimalCompany.API"]["HttpRequestAdapter"];
     AnimalCompanyAPI            = classMap["AnimalCompany.API"]["AnimalCompanyAPI"];
     CutieController            = classMap["AnimalCompany"]["CutieController"];
+    NetworkBehaviour           = classMap["Fusion"]["NetworkBehaviour"];
 
     
     if (GameObject && s_get_method_from_name) 
