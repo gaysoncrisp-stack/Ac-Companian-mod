@@ -2728,10 +2728,10 @@ static void ExecutePlayerAction()
     using t_RPC_ShakeScreen = void(*)(Il2CppObject*, float, float, float, float, float);
     auto RPC_ShakeScreen = (t_RPC_ShakeScreen)STRIP_FP(m_RPC_ShakeScreen->methodPointer);
 
-    //MethodInfo* m_SetMass = s_get_method_from_name(GrabbableObject, "SetMass", 1);
-    //if (!m_SetMass || !m_SetMass->methodPointer) return;
-    //using t_SetMass = void(*)(Il2CppObject*, float);
-    //auto SetMass = (t_SetMass)STRIP_FP(m_SetMass->methodPointer);
+    MethodInfo* m_SetMass = s_get_method_from_name(GrabbableObject, "SetMass", 1);
+    if (!m_SetMass || !m_SetMass->methodPointer) return;
+    using t_SetMass = void(*)(Il2CppObject*, float);
+    auto SetMass = (t_SetMass)STRIP_FP(m_SetMass->methodPointer);
 
     MethodInfo* m_SetColorHue = s_get_method_from_name(GrabbableObject, "SetColorHue", 1);
     if (!m_SetColorHue || !m_SetColorHue->methodPointer) return;
@@ -2741,12 +2741,12 @@ static void ExecutePlayerAction()
     MethodInfo* m_SetColorSaturation = s_get_method_from_name(GrabbableObject, "SetColorSaturation", 1);
     if (!m_SetColorSaturation || !m_SetColorSaturation->methodPointer) return;
     using t_SetColorSaturation = void(*)(Il2CppObject*, float);
-    auto SSetColorSaturation = (t_SetColorSaturation)STRIP_FP(m_SetMass->methodPointer);
+    auto SSetColorSaturation = (t_SetColorSaturation)STRIP_FP(m_SetColorSaturation->methodPointer);
 
     MethodInfo* m_SetNormalizedScaleModifier = s_get_method_from_name(GrabbableObject, "SetNormalizedScaleModifier", 1);
     if (!m_SetNormalizedScaleModifier || !m_SetNormalizedScaleModifier->methodPointer) return;
     using t_SetNormalizedScaleModifier = void(*)(Il2CppObject*, float);
-    auto SetNormalizedScaleModifier = (t_SetNormalizedScaleModifier)STRIP_FP(m_SetMass->methodPointer);
+    auto SetNormalizedScaleModifier = (t_SetNormalizedScaleModifier)STRIP_FP(m_SetNormalizedScaleModifier->methodPointer);
 
     MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
     if (!spawn_GO || !spawn_GO->methodPointer) return;
@@ -2960,26 +2960,26 @@ static void ExecutePlayerAction()
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                //SetMass(crossb, 50000.f);
+                SetMass(crossb, 50000.f);
             }
             if(g_cfgTargetAction == "Really Heavy Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                //SetMass(crossb, 5000050000.f);
+                SetMass(crossb, 5000050000.f);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SSetColorHue(crossb, 300.f);
-                SSetColorSaturation(crossb, 500.f);
+                SSetColorHue(crossb, 50000.f);
+                SSetColorSaturation(crossb, 50000.f);
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetNormalizedScaleModifier(crossb, 255.f);
+                SetNormalizedScaleModifier(crossb, 50000.f);
             }
         }
     }
