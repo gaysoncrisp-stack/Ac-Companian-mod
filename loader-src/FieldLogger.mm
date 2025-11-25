@@ -396,6 +396,7 @@ static Il2CppClass* HordeMobController = nullptr;
 static Il2CppClass* MomBossGameMusicalChair = nullptr;
 static Il2CppClass* Balloon = nullptr;
 static Il2CppClass* HttpRequestAdapter = nullptr;
+static Il2CppClass* CutieController = nullptr;
 
 struct Vector3 { float x,y,z; };
 struct Quaternion { float x,y,z,w; };
@@ -3604,19 +3605,37 @@ static void CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-    auto nm_f_instance  = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
-    auto get_instance   = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
-    Il2CppObject* nsInstance = get_instance();
+    static MethodInfo* m_FindObjectsOfType = nullptr;
+    if (!m_FindObjectsOfType) 
+    {
+        m_FindObjectsOfType = s_get_method_from_name(GameObject, "FindObjectsOfType", 1);
+        if (!m_FindObjectsOfType || !m_FindObjectsOfType->methodPointer) {
+            NSLog(@"[Kitty] FindJeremyAndDoSomething: FindObjectsOfType(Type) not found");
+            return;
+        }
+    }
 
-    auto nm_vrPlayer  = s_get_method_from_name(NetSpectator, "get_associatedVRPlayer", 0);
-    auto get_vrPlayer = (Il2CppObject*(*)(Il2CppObject*))STRIP_FP(nm_vrPlayer->methodPointer);
-    Il2CppObject* vr = get_vrPlayer(nsInstance);
+    Il2CppObject* cutieControllerType = TypeOf(CutieController);
 
-    NetworkBehaviourId netBId = get_Id(vr);
-    TryGrabObject(_attachAnchor, netBId, false, true, false);
+    Il2CppException* exees = nullptr;
+    void* argsFOT[1] = { cutieControllerType };
+    Il2CppObject* arrPrefabs = s_runtime_invoke(m_FindObjectsOfType, nullptr, argsFOT, &exees);
 
-    FieldInfo* f_grabbedObject = s_class_get_field_from_name(AttachedItemAnchor, "_grabbedObject");
-    s_field_set_value(_attachAnchor, f_grabbedObject, &netBId);
+    Il2CppArray* arrp = (Il2CppArray*)arrPrefabs;
+
+    Il2CppObject** elemss = (Il2CppObject**)((char*)arrp + sizeof(Il2CppArray));
+
+    for (il2cpp_array_size_t i = 0; i < arrp->max_length; ++i) 
+    {
+        Il2CppObject* nosg = elemss[i];
+
+        Il2CppObject* _grabbable = nullptr;
+        FieldInfo* f_grabbable = s_class_get_field_from_name(CutieController, "_grabbable");
+        s_field_get_value(nosg, f_grabbable, &_grabbable);
+
+        NetworkBehaviourId netBId = get_Id(_grabbable);
+        TryGrabObject(_attachAnchor, netBId, false, true, false);
+    }
 }
 
 static void CustomTick()
@@ -3843,6 +3862,7 @@ void initStuff(MemoryFileInfo framework)
     GrenadeLauncher            = classMap["AnimalCompany"]["GrenadeLauncher"];
     HttpRequestAdapter            = classMap["AnimalCompany.API"]["HttpRequestAdapter"];
     AnimalCompanyAPI            = classMap["AnimalCompany.API"]["AnimalCompanyAPI"];
+    CutieController            = classMap["AnimalCompany"]["CutieController"];
 
     
     if (GameObject && s_get_method_from_name) 
