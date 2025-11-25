@@ -2573,54 +2573,105 @@ static MethodInfo* FindSpawnItemGO(Il2CppClass* klass) {
 }
 static void FillRootItems(Il2CppObject* backpack)
 {
-    if (!backpack || !s_get_method_from_name || !s_runtime_invoke || !s_type_get_object) {
-        NSLog(@"[Kitty] FillRootItems: missing il2cpp symbols");
+    if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] FillRootItems: missing il2cpp symbols/classes");
         return;
     }
 
-    // Resolve the rootItems property getter
-    auto m_getRootItems = s_get_method_from_name(BackpackItem, "get_rootItems", 0);
-    if (!m_getRootItems || !m_getRootItems->methodPointer) {
-        NSLog(@"[Kitty] FillRootItems: rootItems getter not found");
+    // Get the rootItems property getter
+    static MethodInfo* m_getRootItems = nullptr;
+    if (!m_getRootItems) {
+        m_getRootItems = s_get_method_from_name(BackpackItem, "get_rootItems", 0);
+        if (!m_getRootItems || !m_getRootItems->methodPointer) {
+            NSLog(@"[Kitty] FillRootItems: rootItems getter not found");
+            return;
+        }
+    }
+
+    // Invoke getter -> boxed NetworkLinkedList<short> (struct boxed as object)
+    Il2CppException* ex = nullptr;
+    Il2CppObject* boxedList = s_runtime_invoke(m_getRootItems, backpack, nullptr, &ex);
+    if (ex || !boxedList) {
+        NSLog(@"[Kitty] FillRootItems: get_rootItems failed ex=%p list=%p", ex, boxedList);
         return;
     }
 
-    // Invoke getter -> returns boxed NetworkLinkedList<short>
-    Il2CppObject* rootList = (Il2CppObject*)s_runtime_invoke(m_getRootItems, backpack, nullptr, nullptr);
-    if (!rootList) {
-        NSLog(@"[Kitty] FillRootItems: rootItems list is null");
+    // Unbox: pointer to the struct data used as 'this' for instance method calls
+    void* listThis = (void*)((char*)boxedList + sizeof(Il2CppObject));
+
+    // Resolve methods from the boxed list's class
+    Il2CppClass* listClass = s_object_get_class(boxedList);
+    if (!listClass) {
+        NSLog(@"[Kitty] FillRootItems: listClass NULL");
         return;
     }
 
-    // Resolve generic type Fusion.NetworkLinkedList`1<System.Int16>
-    Il2CppClass* klassGeneric = FindClass("Fusion", "NetworkLinkedList`1");
-    Il2CppClass* klassInt16   = FindClass("System", "Int16");
-    if (!klassGeneric || !klassInt16) {
-        NSLog(@"[Kitty] FillRootItems: failed to resolve generic base or Int16");
-        return;
+    static MethodInfo* m_Add = nullptr;
+    static MethodInfo* m_getCapacity = nullptr;
+    static MethodInfo* m_getCount = nullptr;
+
+    if (!m_Add) {
+        m_Add = s_get_method_from_name(listClass, "Add", 1);
+        if (!m_Add || !m_Add->methodPointer) {
+            NSLog(@"[Kitty] FillRootItems: Add(short) not found");
+            return;
+        }
     }
 
-    Il2CppClass* klassNetworkLinkedListShort = MakeGenericClass(klassGeneric, &klassInt16, 1);
-    if (!klassNetworkLinkedListShort) {
-        NSLog(@"[Kitty] FillRootItems: failed to construct NetworkLinkedList<short>");
-        return;
+    if (!m_getCapacity) {
+        m_getCapacity = s_get_method_from_name(listClass, "get_Capacity", 0);
+        // optional; if missing, we continue anyway
     }
 
-    // Resolve Add(T) on NetworkLinkedList<short>
-    auto m_Add = s_get_method_from_name(klassNetworkLinkedListShort, "Add", 1);
-    if (!m_Add || !m_Add->methodPointer) {
-        NSLog(@"[Kitty] FillRootItems: Add(short) not found");
-        return;
-    }
-    auto AddShort = (void(*)(Il2CppObject*, int16_t))STRIP_FP(m_Add->methodPointer);
-
-    // Push 24 shorts with value 1
-    for (int i = 0; i < 24; i++) {
-        AddShort(rootList, (int16_t)1);
+    if (!m_getCount) {
+        m_getCount = s_get_method_from_name(listClass, "get_Count", 0);
+        // optional; if missing, we continue anyway
     }
 
-    NSLog(@"[Kitty] FillRootItems: added 24 shorts=1");
+    int cap = -1;
+    int cnt = -1;
+
+    if (m_getCapacity) {
+        ex = nullptr;
+        Il2CppObject* boxedCap = s_runtime_invoke(m_getCapacity, listThis, nullptr, &ex);
+        if (!ex && boxedCap) cap = *(int*)((char*)boxedCap + sizeof(Il2CppObject));
+    }
+    if (m_getCount) {
+        ex = nullptr;
+        Il2CppObject* boxedCnt = s_runtime_invoke(m_getCount, listThis, nullptr, &ex);
+        if (!ex && boxedCnt) cnt = *(int*)((char*)boxedCnt + sizeof(Il2CppObject));
+    }
+
+    NSLog(@"[Kitty] FillRootItems: capacity=%d count=%d (target add=24)", cap, cnt);
+
+    // Add 24 shorts of value 1
+    for (int i = 0; i < 24; ++i) {
+        int16_t v = (int16_t)1;
+        void* argsAdd[1] = { &v };
+
+        ex = nullptr;
+        s_runtime_invoke(m_Add, listThis, argsAdd, &ex);
+        if (ex) {
+            NSLog(@"[Kitty] FillRootItems: Add[%d]=1 threw ex=%p", i, ex);
+            // keep going; Fusion linked list may hard-cap at capacity (23) and fail beyond
+            continue;
+        }
+    }
+
+    // Post-state (best-effort)
+    if (m_getCount) {
+        ex = nullptr;
+        Il2CppObject* boxedCnt2 = s_runtime_invoke(m_getCount, listThis, nullptr, &ex);
+        if (!ex && boxedCnt2) {
+            int cnt2 = *(int*)((char*)boxedCnt2 + sizeof(Il2CppObject));
+            NSLog(@"[Kitty] FillRootItems: done, new count=%d", cnt2);
+            return;
+        }
+    }
+
+    NSLog(@"[Kitty] FillRootItems: done");
 }
+
 
 struct NetworkId { uint32_t Raw; };
 
