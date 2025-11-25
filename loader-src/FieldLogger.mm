@@ -2733,6 +2733,16 @@ static void ExecutePlayerAction()
     using t_SetMass = void(*)(Il2CppObject*, float);
     auto SetMass = (t_SetMass)STRIP_FP(m_SetMass->methodPointer);
 
+    MethodInfo* m_SetColorHue = s_get_method_from_name(GrabbableObject, "SetColorHue", 1);
+    if (!m_SetColorHue || !m_SetColorHue->methodPointer) return;
+    using t_SetColorHue = void(*)(Il2CppObject*, float);
+    auto SetColorHue = (t_SetColorHue)STRIP_FP(m_SetColorHue->methodPointer);
+
+    MethodInfo* m_SetColorSaturation = s_get_method_from_name(GrabbableObject, "SetColorSaturation", 1);
+    if (!m_SetColorSaturation || !m_SetColorSaturation->methodPointer) return;
+    using t_SetColorSaturation = void(*)(Il2CppObject*, float);
+    auto SetColorSaturation = (t_SetColorSaturation)STRIP_FP(m_SetMass->methodPointer);
+
     MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
     if (!spawn_GO || !spawn_GO->methodPointer) return;
 
@@ -2952,6 +2962,14 @@ static void ExecutePlayerAction()
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
                 SetMass(crossb, 50000500005000050000.f);
+            }
+            if(g_cfgTargetAction == "Light Stick")
+            {
+                float ninf = -std::numeric_limits<float>::infinity();
+                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
+                SetColorHue(crossb, ninf);
+                SetColorSaturation(crossb, ninf);
             }
         }
     }
