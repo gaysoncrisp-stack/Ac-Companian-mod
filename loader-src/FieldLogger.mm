@@ -2671,6 +2671,131 @@ static void FillRootItems(Il2CppObject* backpack)
 
     NSLog(@"[Kitty] FillRootItems: done");
 }
+static void DuplicateFirstItem(Il2CppObject* backpack)
+{
+    if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] DuplicateFirstItem: missing il2cpp symbols/classes");
+        return;
+    }
+
+    // Get the allItems property getter
+    static MethodInfo* m_getAllItems = nullptr;
+    if (!m_getAllItems) {
+        m_getAllItems = s_get_method_from_name(BackpackItem, "get_allItems", 0);
+        if (!m_getAllItems || !m_getAllItems->methodPointer) {
+            NSLog(@"[Kitty] DuplicateFirstItem: get_allItems not found");
+            return;
+        }
+    }
+
+    Il2CppException* ex = nullptr;
+    Il2CppObject* boxedDict = s_runtime_invoke(m_getAllItems, backpack, nullptr, &ex);
+    if (ex || !boxedDict) {
+        NSLog(@"[Kitty] DuplicateFirstItem: get_allItems failed ex=%p dict=%p", ex, boxedDict);
+        return;
+    }
+
+    void* dictThis = (void*)((char*)boxedDict + sizeof(Il2CppObject));
+    Il2CppClass* dictClass = s_object_get_class(boxedDict);
+    if (!dictClass) {
+        NSLog(@"[Kitty] DuplicateFirstItem: dictClass NULL");
+        return;
+    }
+
+    // Resolve enumerator and set_Item
+    static MethodInfo* m_GetEnumerator = nullptr;
+    static MethodInfo* m_setItem = nullptr;
+    if (!m_GetEnumerator || !m_setItem) {
+        m_GetEnumerator = s_get_method_from_name(dictClass, "GetEnumerator", 0);
+        m_setItem       = s_get_method_from_name(dictClass, "set_Item", 2);
+        if (!m_setItem) m_setItem = s_get_method_from_name(dictClass, "Set", 2);
+        if (!m_GetEnumerator || !m_setItem || !m_GetEnumerator->methodPointer || !m_setItem->methodPointer) {
+            NSLog(@"[Kitty] DuplicateFirstItem: dict methods missing");
+            return;
+        }
+    }
+
+    // Get enumerator
+    ex = nullptr;
+    Il2CppObject* boxedEnum = s_runtime_invoke(m_GetEnumerator, dictThis, nullptr, &ex);
+    if (ex || !boxedEnum) {
+        NSLog(@"[Kitty] DuplicateFirstItem: GetEnumerator failed ex=%p enum=%p", ex, boxedEnum);
+        return;
+    }
+
+    void* enumThis = (void*)((char*)boxedEnum + sizeof(Il2CppObject));
+    Il2CppClass* enumClass = s_object_get_class(boxedEnum);
+    if (!enumClass) {
+        NSLog(@"[Kitty] DuplicateFirstItem: enumClass NULL");
+        return;
+    }
+
+    static MethodInfo* m_MoveNext   = nullptr;
+    static MethodInfo* m_getCurrent = nullptr;
+    static FieldInfo*  f_kv_key     = nullptr;
+    static FieldInfo*  f_kv_value   = nullptr;
+    if (!m_MoveNext || !m_getCurrent) {
+        m_MoveNext   = s_get_method_from_name(enumClass, "MoveNext", 0);
+        m_getCurrent = s_get_method_from_name(enumClass, "get_Current", 0);
+        if (!m_MoveNext || !m_getCurrent || !m_MoveNext->methodPointer || !m_getCurrent->methodPointer) {
+            NSLog(@"[Kitty] DuplicateFirstItem: MoveNext/get_Current not found");
+            return;
+        }
+    }
+
+    // Grab the first KV
+    ex = nullptr;
+    Il2CppObject* boxedHasMore = s_runtime_invoke(m_MoveNext, enumThis, nullptr, &ex);
+    if (ex || !boxedHasMore) {
+        NSLog(@"[Kitty] DuplicateFirstItem: MoveNext failed ex=%p", ex);
+        return;
+    }
+    bool hasMore = *(bool*)((char*)boxedHasMore + sizeof(Il2CppObject));
+    if (!hasMore) {
+        NSLog(@"[Kitty] DuplicateFirstItem: dict empty");
+        return;
+    }
+
+    ex = nullptr;
+    Il2CppObject* boxedKV = s_runtime_invoke(m_getCurrent, enumThis, nullptr, &ex);
+    if (ex || !boxedKV) {
+        NSLog(@"[Kitty] DuplicateFirstItem: get_Current failed ex=%p kv=%p", ex, boxedKV);
+        return;
+    }
+
+    Il2CppClass* kvClass = s_object_get_class(boxedKV);
+    if (!kvClass) {
+        NSLog(@"[Kitty] DuplicateFirstItem: kvClass NULL");
+        return;
+    }
+    if (!f_kv_key || !f_kv_value) {
+        f_kv_key   = s_class_get_field_from_name(kvClass, "key");
+        f_kv_value = s_class_get_field_from_name(kvClass, "value");
+        if (!f_kv_key || !f_kv_value) {
+            NSLog(@"[Kitty] DuplicateFirstItem: key/value fields not found");
+            return;
+        }
+    }
+
+    short baseKey = 0;
+    uint8_t valueBuf[64] = {0}; // enough for ContainedItem
+    s_field_get_value(boxedKV, f_kv_key,   &baseKey);
+    s_field_get_value(boxedKV, f_kv_value, valueBuf);
+
+    // Duplicate 80 times with new keys
+    for (int i = 1; i <= 80; ++i) {
+        short newKey = baseKey + i;
+        void* argsSet[2] = { &newKey, valueBuf };
+        ex = nullptr;
+        s_runtime_invoke(m_setItem, dictThis, argsSet, &ex);
+        if (ex) {
+            NSLog(@"[Kitty] DuplicateFirstItem: set_Item key=%d ex=%p", (int)newKey, ex);
+            continue;
+        }
+    }
+
+    NSLog(@"[Kitty] DuplicateFirstItem: duplicated first entry to 81 total");
+}
 
 
 struct NetworkId { uint32_t Raw; };
@@ -3071,7 +3196,16 @@ static void ExecutePlayerAction()
                 Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
+                Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_apple"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
+                Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
+
+                auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+                auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+
+                TryAddItem(quiver, aple);
+
                 FillRootItems(quiver);
+                DuplicateFirstItem(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
