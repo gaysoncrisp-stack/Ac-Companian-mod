@@ -2571,6 +2571,10 @@ static MethodInfo* FindSpawnItemGO(Il2CppClass* klass) {
     }
     return nullptr;
 }
+
+
+
+
 static void FillRootItems(Il2CppObject* backpack)
 {
     if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
@@ -2866,6 +2870,109 @@ static void ClearRootItems(Il2CppObject* backpack)
 
     NSLog(@"[Kitty] ClearRootItems: done");
 }
+static void DupeRootItemsAndSetCapacity(Il2CppObject* backpack)
+{
+    if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class || !s_class_get_field_from_name || !s_field_set_value) {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: missing il2cpp symbols/classes");
+        return;
+    }
+
+    // Get the rootItems property getter
+    static MethodInfo* m_getRootItems = nullptr;
+    if (!m_getRootItems) {
+        m_getRootItems = s_get_method_from_name(BackpackItem, "get_rootItems", 0);
+        if (!m_getRootItems || !m_getRootItems->methodPointer) {
+            NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: rootItems getter not found");
+            return;
+        }
+    }
+
+    // Invoke getter -> boxed NetworkLinkedList<short>
+    Il2CppException* ex = nullptr;
+    Il2CppObject* boxedList = s_runtime_invoke(m_getRootItems, backpack, nullptr, &ex);
+    if (ex || !boxedList) {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: get_rootItems failed ex=%p list=%p", ex, boxedList);
+        return;
+    }
+
+    // Unbox pointer used as 'this' for instance methods
+    void* listThis = (void*)((char*)boxedList + sizeof(Il2CppObject));
+    Il2CppClass* listClass = s_object_get_class(boxedList);
+    if (!listClass) {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: listClass NULL");
+        return;
+    }
+
+    // Resolve required methods
+    static MethodInfo* m_getCount = nullptr;
+    static MethodInfo* m_getItem  = nullptr;
+    static MethodInfo* m_Add      = nullptr;
+
+    if (!m_getCount) m_getCount = s_get_method_from_name(listClass, "get_Count", 0);
+    if (!m_getItem)  m_getItem  = s_get_method_from_name(listClass, "get_Item", 1);
+    if (!m_Add)      m_Add      = s_get_method_from_name(listClass, "Add", 1);
+
+    if (!m_getCount || !m_getItem || !m_Add ||
+        !m_getCount->methodPointer || !m_getItem->methodPointer || !m_Add->methodPointer) {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: required methods missing");
+        return;
+    }
+
+    // Read current count
+    ex = nullptr;
+    Il2CppObject* boxedCnt = s_runtime_invoke(m_getCount, listThis, nullptr, &ex);
+    if (ex || !boxedCnt) {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: get_Count failed ex=%p cnt=%p", ex, boxedCnt);
+        return;
+    }
+    int count = *(int*)((char*)boxedCnt + sizeof(Il2CppObject));
+    if (count <= 0) {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: list empty");
+        // still set capacity, then return
+    } else {
+        NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: duplicating %d items", count);
+
+        // Duplicate each existing item once (append the same values)
+        for (int i = 0; i < count; ++i) {
+            void* argsIdx[1] = { &i };
+            ex = nullptr;
+            Il2CppObject* boxedElem = s_runtime_invoke(m_getItem, listThis, argsIdx, &ex);
+            if (ex || !boxedElem) {
+                NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: get_Item(%d) failed ex=%p elem=%p", i, ex, boxedElem);
+                continue;
+            }
+
+            short val = *(short*)((char*)boxedElem + sizeof(Il2CppObject));
+            void* argsAdd[1] = { &val };
+            ex = nullptr;
+            s_runtime_invoke(m_Add, listThis, argsAdd, &ex);
+            if (ex) {
+                NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: Add dup[%d]=%d ex=%p", i, (int)val, ex);
+                continue;
+            }
+        }
+    }
+
+    // Set backing field _capacity = 999 on the boxed struct
+    static FieldInfo* f_capacity = nullptr;
+    if (!f_capacity) {
+        f_capacity = s_class_get_field_from_name(listClass, "_capacity");
+        if (!f_capacity) {
+            NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: _capacity field not found");
+            return;
+        }
+    }
+    int newCap = 999;
+    s_field_set_value(boxedList, f_capacity, &newCap);
+
+    // Verify result
+    ex = nullptr;
+    Il2CppObject* boxedCnt2 = s_runtime_invoke(m_getCount, listThis, nullptr, &ex);
+    int cnt2 = -1;
+    if (!ex && boxedCnt2) cnt2 = *(int*)((char*)boxedCnt2 + sizeof(Il2CppObject));
+    NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: done, new count=%d, _capacity=999", cnt2);
+}
+
 
 
 struct NetworkId { uint32_t Raw; };
@@ -3278,19 +3385,7 @@ static void ExecutePlayerAction()
                 }
 
                 DuplicateFirstItem(quiver);
-                //FillRootItems(quiver);
-                ClearRootItems(quiver);
-
-                for (int i = 0; i < 23; ++i) 
-                {
-                    Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_grenade_gold"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
-                    Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
-
-                    auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
-                    auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
-
-                    TryAddItem(quiver, aple);
-                }
+                DupeRootItemsAndSetCapacity(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
