@@ -2972,6 +2972,70 @@ static void DupeRootItemsAndSetCapacity(Il2CppObject* backpack)
     if (!ex && boxedCnt2) cnt2 = *(int*)((char*)boxedCnt2 + sizeof(Il2CppObject));
     NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: done, new count=%d, _capacity=999", cnt2);
 }
+static void ClearAllItems(Il2CppObject* backpack)
+{
+    if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] ClearAllItems: missing il2cpp symbols/classes");
+        return;
+    }
+
+    // Get the allItems property getter
+    static MethodInfo* m_getAllItems = nullptr;
+    if (!m_getAllItems) {
+        m_getAllItems = s_get_method_from_name(BackpackItem, "get_allItems", 0);
+        if (!m_getAllItems || !m_getAllItems->methodPointer) {
+            NSLog(@"[Kitty] ClearAllItems: get_allItems not found");
+            return;
+        }
+    }
+
+    Il2CppException* ex = nullptr;
+    Il2CppObject* boxedDict = s_runtime_invoke(m_getAllItems, backpack, nullptr, &ex);
+    if (ex || !boxedDict) {
+        NSLog(@"[Kitty] ClearAllItems: get_allItems failed ex=%p dict=%p", ex, boxedDict);
+        return;
+    }
+
+    // Unbox pointer used as 'this' for instance methods
+    void* dictThis = (void*)((char*)boxedDict + sizeof(Il2CppObject));
+    Il2CppClass* dictClass = s_object_get_class(boxedDict);
+    if (!dictClass) {
+        NSLog(@"[Kitty] ClearAllItems: dictClass NULL");
+        return;
+    }
+
+    // Resolve Clear() and get_Count
+    static MethodInfo* m_Clear = nullptr;
+    static MethodInfo* m_getCount = nullptr;
+    if (!m_Clear)    m_Clear    = s_get_method_from_name(dictClass, "Clear", 0);
+    if (!m_getCount) m_getCount = s_get_method_from_name(dictClass, "get_Count", 0);
+
+    if (!m_Clear || !m_Clear->methodPointer) {
+        NSLog(@"[Kitty] ClearAllItems: Clear() not found");
+        return;
+    }
+
+    // Call Clear()
+    ex = nullptr;
+    s_runtime_invoke(m_Clear, dictThis, nullptr, &ex);
+    if (ex) {
+        NSLog(@"[Kitty] ClearAllItems: Clear() threw ex=%p", ex);
+        return;
+    }
+
+    // Verify new count
+    if (m_getCount) {
+        ex = nullptr;
+        Il2CppObject* boxedCnt = s_runtime_invoke(m_getCount, dictThis, nullptr, &ex);
+        if (!ex && boxedCnt) {
+            int cnt = *(int*)((char*)boxedCnt + sizeof(Il2CppObject));
+            NSLog(@"[Kitty] ClearAllItems: done, new count=%d", cnt);
+            return;
+        }
+    }
+
+    NSLog(@"[Kitty] ClearAllItems: done");
+}
 
 
 
@@ -3373,19 +3437,15 @@ static void ExecutePlayerAction()
                 Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
-                for (int i = 0; i < 23; ++i) 
-                {
-                    Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_grenade_gold"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
-                    Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
+                Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_grenade_gold"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
+                Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
 
-                    auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
-                    auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+                auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+                auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
 
-                    TryAddItem(quiver, aple);
-                }
-
-                DuplicateFirstItem(quiver);
-                DupeRootItemsAndSetCapacity(quiver);
+                TryAddItem(quiver, aple);
+                
+                ClearAllItems(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
