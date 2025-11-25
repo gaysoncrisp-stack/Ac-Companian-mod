@@ -4238,7 +4238,7 @@ static void CustomTick()
             
             if(!UserStashAndLoadoutSaveMediator)
             {
-                UserStashAndLoadoutSaveMediator = classMap["AnimalCompany", "UserStashAndLoadoutSaveMediator"];
+                UserStashAndLoadoutSaveMediator             = classMap["AnimalCompany"]["UserStashAndLoadoutSaveMediator"];
             }
 
             Il2CppObject* userStashAndLoadoutSaveMediatorType = TypeOf(UserStashAndLoadoutSaveMediator);
