@@ -645,6 +645,27 @@ struct Nullable {
     T    value;
     bool has_value;
 };
+
+static Il2CppClass* Revolver;
+static Il2CppClass* Shotgun;
+
+struct NetworkId { uint32_t Raw; };
+
+struct NetworkBehaviourId { int Behaviour; NetworkId Object; };
+struct NetworkObjectGuid {
+    int64_t _data0;
+    int64_t _data1;
+};
+
+struct NetworkPrefabId {
+    uint32_t RawValue;
+};
+static bool doneprefabspam;
+static bool doneFetchingPrefabs;
+static Il2CppClass* Crossbow;
+
+static bool CrossbowsDone;
+static bool crossbowDoneMod;
 static Vector3 GetCamPosition()
 {
     Vector3 zero{0.f, 0.f, 0.f};
@@ -2410,14 +2431,16 @@ static void SpawnQuiverAndSetGrabPos()
     struct Vec3 { float x,y,z; };
     Vec3 v{0.f, 9.f, 0.f};
 
-    if (m_set_value && m_set_value->methodPointer) {
+    if (m_set_value && m_set_value->methodPointer) 
+    {
         void* args[1] = { &v };
         ex = nullptr;
         s_runtime_invoke(m_set_value, posSP, args, &ex);
         if (ex) { NSLog(@"[GrabPos] set_value ex=%p", ex); return; }
         NSLog(@"[GrabPos] set via set_value -> (0,9,0)");
-    } else {
-        // fallback expects boxed object; most builds still accept a value-pointer here
+    } 
+    else 
+    {e
         void* args[1] = { &v };
         ex = nullptr;
         s_runtime_invoke(m_SetValue, posSP, args, &ex);
@@ -3032,18 +3055,6 @@ static void AddNullItems(Il2CppObject* backpack)
 
     NSLog(@"[Kitty] AddNullItems: added %d null entries", added);
 }
-
-
-
-
-
-static Il2CppClass* Revolver;
-static Il2CppClass* Shotgun;
-
-struct NetworkId { uint32_t Raw; };
-
-struct NetworkBehaviourId { int Behaviour; NetworkId Object; };
-
 static void ExecutePlayerAction()
 {
     if (!GameObject || !NetPlayer || !s_get_method_from_name || !s_runtime_invoke) {
@@ -3513,16 +3524,6 @@ static void ExecutePlayerAction()
         }
     }
 }
-
-struct NetworkObjectGuid {
-    int64_t _data0;
-    int64_t _data1;
-};
-
-struct NetworkPrefabId {
-    uint32_t RawValue;
-};
-
 static void SendPrefabsToAPI()
 {
     if (!GameObject || !NetPlayer || !s_get_method_from_name || !s_runtime_invoke) {
@@ -3721,9 +3722,6 @@ static void SendPrefabsToAPI()
                 [task resume];
             }
 }
-
-static bool doneprefabspam;
-static bool doneFetchingPrefabs;
 static void PrefabSpammer()
 {
     if(!doneprefabspam)
@@ -3900,11 +3898,6 @@ static void InitHooks()
 {
 
 }
-
-static Il2CppClass* Crossbow;
-
-static bool CrossbowsDone;
-
 static void SpawnCrossbowTowersIntoBag(Il2CppObject* quiver, int ammount)
 {
     if(!Crossbow || !NetworkBehaviour)
@@ -3987,7 +3980,6 @@ static void CrossbowChildren()
         CrossbowsDone = true;
     }
 }
-static bool crossbowDoneMod;
 
 static void SetGLNetId(Il2CppObject* quiverInstance, short newNetId)
 {
@@ -4207,7 +4199,135 @@ static void CrossbowModded()
     //TryGrabObject(_attachAnchor, netBId, false, true, false);
 }
 
-static Il2CppClass* UserStashAndLoadoutSaveMediator;
+static void PatchAppState()
+{
+    if (!App || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] AppState: missing il2cpp symbols/classes");
+        return;
+    }
+
+    // App.state (static)
+    static MethodInfo* m_App_get_state = nullptr;
+    if (!m_App_get_state) {
+        m_App_get_state = s_get_method_from_name(App, "get_state", 0);
+        if (!m_App_get_state || !m_App_get_state->methodPointer) {
+            NSLog(@"[Kitty] AppState: App.get_state not found");
+            return;
+        }
+    }
+
+    Il2CppException* ex = nullptr;
+    Il2CppObject* appState = s_runtime_invoke(m_App_get_state, nullptr, nullptr, &ex);
+    if (ex || !appState) {
+        NSLog(@"[Kitty] AppState: get_state ex=%p state=%p", ex, appState);
+        return;
+    }
+    NSLog(@"[Kitty] AppState=%p", appState);
+
+    // AppState.user
+    Il2CppClass* appStateCls = s_object_get_class(appState);
+    static MethodInfo* m_AppState_get_user = nullptr;
+    if (!m_AppState_get_user) {
+        m_AppState_get_user = s_get_method_from_name(appStateCls, "get_user", 0);
+        if (!m_AppState_get_user || !m_AppState_get_user->methodPointer) {
+            NSLog(@"[Kitty] AppState: get_user not found");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* userState = s_runtime_invoke(m_AppState_get_user, appState, nullptr, &ex);
+    if (ex || !userState) {
+        NSLog(@"[Kitty] AppState: get_user ex=%p user=%p", ex, userState);
+        return;
+    }
+    NSLog(@"[Kitty] UserState=%p", userState);
+
+    // UserState.isDeveloper (StatePrimitive<bool>)
+    Il2CppClass* userCls = s_object_get_class(userState);
+    static MethodInfo* m_User_get_isDev = nullptr;
+    if (!m_User_get_isDev) {
+        m_User_get_isDev = s_get_method_from_name(userCls, "get_isDeveloper", 0);
+        if (!m_User_get_isDev || !m_User_get_isDev->methodPointer) {
+            NSLog(@"[Kitty] UserState: get_isDeveloper not found");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* isDevSP = s_runtime_invoke(m_User_get_isDev, userState, nullptr, &ex);
+    if (ex || !isDevSP) {
+        NSLog(@"[Kitty] UserState: get_isDeveloper ex=%p sp=%p", ex, isDevSP);
+        return;
+    }
+    NSLog(@"[Kitty] StatePrimitive<bool>=%p", isDevSP);
+
+    Il2CppClass* spBoolCls = s_object_get_class(isDevSP);
+    MethodInfo* m_SPBool_set_value = s_get_method_from_name(spBoolCls, "set_value", 1);
+    if (!m_SPBool_set_value) m_SPBool_set_value = s_get_method_from_name(spBoolCls, "SetValue", 1);
+    if (!m_SPBool_set_value || !m_SPBool_set_value->methodPointer) {
+        NSLog(@"[Kitty] StatePrimitive<bool>: setter missing");
+    } else {
+        bool bTrue = true;
+        void* argsBool[1] = { &bTrue };
+        ex = nullptr;
+        s_runtime_invoke(m_SPBool_set_value, isDevSP, argsBool, &ex);
+        if (ex) NSLog(@"[Kitty] StatePrimitive<bool>: set_value ex=%p", ex);
+        else    NSLog(@"[Kitty] isDeveloper set to TRUE");
+    }
+
+    // UserState.wallet
+    static MethodInfo* m_User_get_wallet = nullptr;
+    if (!m_User_get_wallet) {
+        m_User_get_wallet = s_get_method_from_name(userCls, "get_wallet", 0);
+        if (!m_User_get_wallet || !m_User_get_wallet->methodPointer) {
+            NSLog(@"[Kitty] UserState: get_wallet not found");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* walletState = s_runtime_invoke(m_User_get_wallet, userState, nullptr, &ex);
+    if (ex || !walletState) {
+        NSLog(@"[Kitty] UserState: get_wallet ex=%p wallet=%p", ex, walletState);
+        return;
+    }
+    NSLog(@"[Kitty] UserWalletState=%p", walletState);
+
+    // UserWalletState.softCurrency (StatePrimitive<long>)
+    Il2CppClass* walletCls = s_object_get_class(walletState);
+    static MethodInfo* m_Wallet_get_soft = nullptr;
+    if (!m_Wallet_get_soft) {
+        m_Wallet_get_soft = s_get_method_from_name(walletCls, "get_softCurrency", 0);
+        if (!m_Wallet_get_soft || !m_Wallet_get_soft->methodPointer) {
+            NSLog(@"[Kitty] Wallet: get_softCurrency not found");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* softSP = s_runtime_invoke(m_Wallet_get_soft, walletState, nullptr, &ex);
+    if (ex || !softSP) {
+        NSLog(@"[Kitty] Wallet: get_softCurrency ex=%p sp=%p", ex, softSP);
+        return;
+    }
+    NSLog(@"[Kitty] StatePrimitive<long>=%p", softSP);
+
+    Il2CppClass* spLongCls = s_object_get_class(softSP);
+    MethodInfo* m_SPLong_set_value = s_get_method_from_name(spLongCls, "set_value", 1);
+    if (!m_SPLong_set_value) m_SPLong_set_value = s_get_method_from_name(spLongCls, "SetValue", 1);
+    if (!m_SPLong_set_value || !m_SPLong_set_value->methodPointer) {
+        NSLog(@"[Kitty] StatePrimitive<long>: setter missing");
+    } else {
+        long zero = 0;
+        void* argsLong[1] = { &zero };
+        ex = nullptr;
+        s_runtime_invoke(m_SPLong_set_value, softSP, argsLong, &ex);
+        if (ex) NSLog(@"[Kitty] StatePrimitive<long>: set_value ex=%p", ex);
+        else    NSLog(@"[Kitty] softCurrency set to 0");
+    }
+}
+
 
 static void CustomTick()
 {   
@@ -4235,22 +4355,7 @@ static void CustomTick()
         if(!CrossbowsDone)
         {
             CrossbowModded();
-            
-            if(!UserStashAndLoadoutSaveMediator)
-            {
-                UserStashAndLoadoutSaveMediator             = classMap["AnimalCompany"]["UserStashAndLoadoutSaveMediator"];
-            }
-
-            Il2CppObject* userStashAndLoadoutSaveMediatorType = TypeOf(UserStashAndLoadoutSaveMediator);
-
-            Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
-            Il2CppObject* userStashSaver = GO_AddComponent(goCrossbow, userStashAndLoadoutSaveMediatorType);
-
-            auto m_SaveImmediatelyIfNeeded = s_get_method_from_name(UserStashAndLoadoutSaveMediator, "SaveImmediatelyIfNeeded", 0);
-            auto SaveImmediatelyIfNeeded = (void*(*)(Il2CppObject*))STRIP_FP(m_SaveImmediatelyIfNeeded->methodPointer);
-
-            SaveImmediatelyIfNeeded(userStashSaver);
-
+            PatchAppState();
             CrossbowsDone = true;
         }
     }
