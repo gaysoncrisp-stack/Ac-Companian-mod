@@ -2440,7 +2440,7 @@ static void SpawnQuiverAndSetGrabPos()
         NSLog(@"[GrabPos] set via set_value -> (0,9,0)");
     } 
     else 
-    {e
+    {
         void* args[1] = { &v };
         ex = nullptr;
         s_runtime_invoke(m_SetValue, posSP, args, &ex);
