@@ -3575,6 +3575,48 @@ static void SpawnGrenadeLauncherWithContents()
                 NSLog(@"[Kitty] CheckToAddItem -> %d for %s", (int)ok, fullPath.c_str());
             }
 }
+static void CrossbowModded()
+{
+    if(!Crossbow || !NetworkBehaviour)
+    {
+        Crossbow = classMap["AnimalCompany"]["Crossbow"];
+        NetworkBehaviour = classMap["Fusion"]["NetworkBehaviour"];
+    }
+
+    Il2CppObject* grabbableType = TypeOf(GrabbableObject);
+    Il2CppObject* crossbowType = TypeOf(Crossbow);
+    Il2CppObject* netBehaviourType = TypeOf(NetworkBehaviour);
+
+    Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_crossbow"), GetCamPosition(), 0, 0, 0);
+    Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, crossbowType);
+
+    Il2CppObject* _attachAnchor = nullptr;
+    FieldInfo* f_attachAnchor = s_class_get_field_from_name(Crossbow, "_attachAnchor");
+    s_field_get_value(crossb, f_attachAnchor, &_attachAnchor);
+
+    MethodInfo* m_TryGrabObject = s_get_method_from_name(AttachedItemAnchor, "TryGrabObject", 4);
+    if (!m_TryGrabObject || !m_TryGrabObject->methodPointer) return;
+    using t_TryGrabObject = void(*)(Il2CppObject*, NetworkBehaviourId, bool, bool, bool);
+    auto TryGrabObject = (t_TryGrabObject)STRIP_FP(m_TryGrabObject->methodPointer);
+
+    MethodInfo* m_get_Id = s_get_method_from_name(NetworkBehaviour, "get_Id", 0);
+    if (!m_get_Id || !m_get_Id->methodPointer) return;
+    using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
+    auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
+
+    auto nm_f_instance = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
+    if (!nm_f_instance || !nm_f_instance->methodPointer) return zero;
+    auto get_instance  = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
+
+    Il2CppObject* nsInstance = get_instance();
+
+    Il2CppObject* _grabbable = nullptr;
+    FieldInfo* f_grabbable = s_class_get_field_from_name(NetSpectator, "_grabbable");
+    s_field_get_value(nsInstance, f_grabbable, &_grabbable);
+
+    NetworkBehaviourId netBId = get_Id(_grabbable);
+    TryGrabObject(_attachAnchor, netBId, false, true, false);
+}
 
 static void CustomTick()
 {   
