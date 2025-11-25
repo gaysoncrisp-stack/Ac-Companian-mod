@@ -2927,7 +2927,7 @@ static void ExecutePlayerAction()
             }
             if(g_cfgTargetAction == "Shake Screen Insane")
             {
-                RPC_ShakeScreen(np, 5000000.f, 1.f, 1.f, 5000000.f, 5000000.f);
+                RPC_ShakeScreen(np, 50.f, 1.f, 1.f, 5000.f, 5000.f);
             }
         }
     }
@@ -3602,7 +3602,7 @@ static void CrossbowModded()
     Il2CppObject* crossbowType = TypeOf(Crossbow);
     Il2CppObject* netBehaviourType = TypeOf(NetworkBehaviour);
 
-    Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_crossbow"), GetCamPosition(), 0, 0, 0);
+    Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
     Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableItemType);
 
     Il2CppObject* _attachAnchor = nullptr;
@@ -3619,7 +3619,7 @@ static void CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-     MethodInfo* m_RPC_SetAdditionalSellValue = s_get_method_from_name(GrabbableItem, "RPC_SetAdditionalSellValue", 1);
+    MethodInfo* m_RPC_SetAdditionalSellValue = s_get_method_from_name(GrabbableItem, "RPC_SetAdditionalSellValue", 1);
     if (!m_RPC_SetAdditionalSellValue || !m_RPC_SetAdditionalSellValue->methodPointer) return;
     using t_RPC_SetAdditionalSellValue = void(*)(Il2CppObject*, int);
     auto RPC_SetAdditionalSellValue = (t_RPC_SetAdditionalSellValue)STRIP_FP(m_RPC_SetAdditionalSellValue->methodPointer);
@@ -3646,7 +3646,8 @@ static void CustomTick()
     }
     if(g_cfgSpamNut.load())
     {
-        NutSpammer();
+        //NutSpammer();
+        SpawnGrenadeLauncherWithContents();
     }
     if (g_cfgFlingAll.load())
     {
