@@ -3441,7 +3441,7 @@ static void ExecutePlayerAction()
                 auto m_set_capacity = s_get_method_from_name(BackpackItem, "set_capacity", 1);
                 auto set_capacity = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_capacity->methodPointer);
 
-                set_capacity(255);
+                set_capacity(quiver, 255);
 
                 std::string id;
 
