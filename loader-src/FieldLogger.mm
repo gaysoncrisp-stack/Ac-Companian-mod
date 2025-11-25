@@ -2570,6 +2570,11 @@ static MethodInfo* FindSpawnItemGO(Il2CppClass* klass) {
     }
     return nullptr;
 }
+
+struct NetworkId { uint32_t Raw; };
+
+struct NetworkBehaviourId { int Behaviour; NetworkId Object; };
+
 static void ExecutePlayerAction()
 {
     if (!GameObject || !NetPlayer || !s_get_method_from_name || !s_runtime_invoke) {
@@ -2720,6 +2725,11 @@ static void ExecutePlayerAction()
     if (!m_RPC_ShakeScreen || !m_RPC_ShakeScreen->methodPointer) return;
     using t_RPC_ShakeScreen = void(*)(Il2CppObject*, float, float, float, float, float);
     auto RPC_ShakeScreen = (t_RPC_ShakeScreen)STRIP_FP(m_RPC_ShakeScreen->methodPointer);
+
+    MethodInfo* m_RPC_SetStuckAnchor = s_get_method_from_name(GrabbableObject, "RPC_SetStuckAnchor", 4);
+    if (!m_RPC_SetStuckAnchor || !m_RPC_SetStuckAnchor->methodPointer) return;
+    using t_RPC_SetStuckAnchor = void(*)(Il2CppObject*, NetworkBehaviourId, Vector3, Quaternion, bool);
+    auto RPC_SetStuckAnchor = (t_RPC_SetStuckAnchor)STRIP_FP(m_RPC_SetStuckAnchor->methodPointer);
 
     MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
     if (!spawn_GO || !spawn_GO->methodPointer) return;
@@ -2928,6 +2938,18 @@ static void ExecutePlayerAction()
             if(g_cfgTargetAction == "Shake Screen Insane")
             {
                 RPC_ShakeScreen(np, 50.f, 1.f, 1.f, 5000.f, 5000.f);
+            }
+            if(g_cfgTargetAction == "Stick Items")
+            {
+                MethodInfo* m_get_Id = s_get_method_from_name(NetworkBehaviour, "get_Id", 0);
+                if (!m_get_Id || !m_get_Id->methodPointer) return;
+                using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
+                auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
+
+                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
+
+                RPC_SetStuckAnchor(crossb, get_Id(np), transform_get_position(body), Quaternion{0.f, 0.f, 0.f, 1.f}, false);
             }
         }
     }
@@ -3319,10 +3341,6 @@ static void InitHooks()
 {
 
 }
-
-struct NetworkId { uint32_t Raw; };
-
-struct NetworkBehaviourId { int Behaviour; NetworkId Object; };
 
 static Il2CppClass* Crossbow;
 static Il2CppClass* NetworkBehaviour;
