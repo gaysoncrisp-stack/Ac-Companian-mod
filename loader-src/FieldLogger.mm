@@ -3037,6 +3037,8 @@ static void AddNullItems(Il2CppObject* backpack)
 
 
 
+static Il2CppClass* Revolver;
+static Il2CppClass* Shotgun;
 
 struct NetworkId { uint32_t Raw; };
 
@@ -3436,6 +3438,11 @@ static void ExecutePlayerAction()
                 Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
+                auto m_set_capacity = s_get_method_from_name(BackpackItem, "set_capacity", 1);
+                auto set_capacity = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set_capacity->methodPointer);
+
+                set_capacity(255);
+
                 std::string id;
 
                 std::lock_guard<std::mutex> lk(g_cfgMu);
@@ -3447,25 +3454,61 @@ static void ExecutePlayerAction()
                 int8_t satSb = clamp_i8((float)g_cfgSat.load());
                 int8_t scaleB = clamp_i8((float)g_cfgScale.load());
 
-                Il2CppObject* goApple = SpawnItem(CreateMonoString(path.c_str()), GetCamPosition(), satSb, scaleB, hueB);
-                Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
+                for (int i = 0; i < 29; ++i) 
+                {
+                    Il2CppObject* goApple = SpawnItem(CreateMonoString(path.c_str()), GetCamPosition(), satSb, scaleB, hueB);
+                    Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
 
-                auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
-                auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+                    auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+                    auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
 
-                TryAddItem(quiver, aple);
-
-                SetBackpackNetId(quiver, g_netId.load());
+                    TryAddItem(quiver, aple);
+                }
+                if(g_netId.load() != -1)
+                {
+                    SetBackpackNetId(quiver, g_netId.load());
+                }
                 
                 DuplicateFirstItem(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
+                if(!Revolver)
+                {
+                    Revolver = classMap["AnimalCompany"]["Revolver"];
+                }
+
+                Il2CppObject* revoType = TypeOf(Revolver);
+
+                Il2CppObject* goRevo = SpawnItem(CreateMonoString("item_prefab/item_revolver"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
+                Il2CppObject* revo = GO_GetComponentInChildren(goRevo, revoType);
+
+                auto m_set_ammoLoaded = s_get_method_from_name(Revolver, "set_ammoLoaded", 1);
+                auto set_ammoLoaded = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set_ammoLoaded->methodPointer);
+
+                auto m_set_maxAmmoCount = s_get_method_from_name(Revolver, "set_maxAmmoCount", 1);
+                auto set_maxAmmoCount = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set_maxAmmoCount->methodPointer);
+
+                set_maxAmmoCount(revo, 255);
+                set_ammoLoaded(revo, 255);
 
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
-                
+                if(!Shotgun)
+                {
+                    Shotgun = classMap["AnimalCompany"]["Shotgun"];
+                }
+
+                Il2CppObject* shotType = TypeOf(Shotgun);
+
+                Il2CppObject* goShotty = SpawnItem(CreateMonoString("item_prefab/item_shotgun"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
+                Il2CppObject* shotty = GO_GetComponentInChildren(goShotty, shotType);
+
+                auto m_set__ammoLeft = s_get_method_from_name(Revolver, "set__ammoLeft", 1);
+                auto set_ammoLeft = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set__ammoLeft->methodPointer);
+
+                set_ammoLoaded(shotty, 255);
             }
         }
     }
