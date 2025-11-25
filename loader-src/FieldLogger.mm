@@ -2972,8 +2972,8 @@ static void ExecutePlayerAction()
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetColorHue(crossb, 300.f);
-                SetColorSaturation(crossb, 500.f);
+                SSetColorHue(crossb, 300.f);
+                SSetColorSaturation(crossb, 500.f);
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
