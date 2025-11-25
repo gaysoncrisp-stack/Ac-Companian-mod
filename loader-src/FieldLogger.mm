@@ -2972,10 +2972,11 @@ static void DupeRootItemsAndSetCapacity(Il2CppObject* backpack)
     if (!ex && boxedCnt2) cnt2 = *(int*)((char*)boxedCnt2 + sizeof(Il2CppObject));
     NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: done, new count=%d, _capacity=999", cnt2);
 }
-static void ClearAllItems(Il2CppObject* backpack)
+static void AddNullItems(Il2CppObject* backpack)
 {
-    if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
-        NSLog(@"[Kitty] ClearAllItems: missing il2cpp symbols/classes");
+    if (!backpack || !BackpackItem || !s_get_method_from_name || 
+        !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] AddNullItems: missing il2cpp symbols/classes");
         return;
     }
 
@@ -2984,7 +2985,7 @@ static void ClearAllItems(Il2CppObject* backpack)
     if (!m_getAllItems) {
         m_getAllItems = s_get_method_from_name(BackpackItem, "get_allItems", 0);
         if (!m_getAllItems || !m_getAllItems->methodPointer) {
-            NSLog(@"[Kitty] ClearAllItems: get_allItems not found");
+            NSLog(@"[Kitty] AddNullItems: get_allItems not found");
             return;
         }
     }
@@ -2992,50 +2993,57 @@ static void ClearAllItems(Il2CppObject* backpack)
     Il2CppException* ex = nullptr;
     Il2CppObject* boxedDict = s_runtime_invoke(m_getAllItems, backpack, nullptr, &ex);
     if (ex || !boxedDict) {
-        NSLog(@"[Kitty] ClearAllItems: get_allItems failed ex=%p dict=%p", ex, boxedDict);
+        NSLog(@"[Kitty] AddNullItems: get_allItems failed ex=%p dict=%p", ex, boxedDict);
         return;
     }
 
-    // Unbox pointer used as 'this' for instance methods
     void* dictThis = (void*)((char*)boxedDict + sizeof(Il2CppObject));
     Il2CppClass* dictClass = s_object_get_class(boxedDict);
     if (!dictClass) {
-        NSLog(@"[Kitty] ClearAllItems: dictClass NULL");
+        NSLog(@"[Kitty] AddNullItems: dictClass NULL");
         return;
     }
 
-    // Resolve Clear() and get_Count
-    static MethodInfo* m_Clear = nullptr;
+    // Resolve Add(key,value) and get_Count
+    static MethodInfo* m_Add = nullptr;
     static MethodInfo* m_getCount = nullptr;
-    if (!m_Clear)    m_Clear    = s_get_method_from_name(dictClass, "Clear", 0);
+    if (!m_Add)      m_Add      = s_get_method_from_name(dictClass, "Add", 2);
     if (!m_getCount) m_getCount = s_get_method_from_name(dictClass, "get_Count", 0);
 
-    if (!m_Clear || !m_Clear->methodPointer) {
-        NSLog(@"[Kitty] ClearAllItems: Clear() not found");
+    if (!m_Add || !m_Add->methodPointer) {
+        NSLog(@"[Kitty] AddNullItems: Add(key,value) not found");
         return;
     }
 
-    // Call Clear()
-    ex = nullptr;
-    s_runtime_invoke(m_Clear, dictThis, nullptr, &ex);
-    if (ex) {
-        NSLog(@"[Kitty] ClearAllItems: Clear() threw ex=%p", ex);
-        return;
-    }
-
-    // Verify new count
+    // Get current count (for key offset)
+    int startKey = 1000; // arbitrary base if you don’t care about collisions
     if (m_getCount) {
         ex = nullptr;
         Il2CppObject* boxedCnt = s_runtime_invoke(m_getCount, dictThis, nullptr, &ex);
         if (!ex && boxedCnt) {
             int cnt = *(int*)((char*)boxedCnt + sizeof(Il2CppObject));
-            NSLog(@"[Kitty] ClearAllItems: done, new count=%d", cnt);
-            return;
+            startKey = cnt + 1; // use count as starting key
         }
     }
 
-    NSLog(@"[Kitty] ClearAllItems: done");
+    // Add 80 null entries
+    int added = 0;
+    for (int i = 0; i < 80; ++i) {
+        short key = (short)(startKey + i);
+        void* argsAdd[2] = { &key, nullptr };
+        ex = nullptr;
+        s_runtime_invoke(m_Add, dictThis, argsAdd, &ex);
+        if (ex) {
+            NSLog(@"[Kitty] AddNullItems: Add key=%d threw ex=%p", (int)key, ex);
+            continue;
+        }
+        added++;
+    }
+
+    NSLog(@"[Kitty] AddNullItems: added %d null entries", added);
 }
+
+
 
 
 
@@ -3445,7 +3453,7 @@ static void ExecutePlayerAction()
 
                 TryAddItem(quiver, aple);
                 
-                ClearAllItems(quiver);
+                AddNullItems(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
