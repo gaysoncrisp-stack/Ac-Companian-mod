@@ -2736,12 +2736,17 @@ static void ExecutePlayerAction()
     MethodInfo* m_SetColorHue = s_get_method_from_name(GrabbableObject, "SetColorHue", 1);
     if (!m_SetColorHue || !m_SetColorHue->methodPointer) return;
     using t_SetColorHue = void(*)(Il2CppObject*, float);
-    auto SetColorHue = (t_SetColorHue)STRIP_FP(m_SetColorHue->methodPointer);
+    auto SSetColorHue = (t_SetColorHue)STRIP_FP(m_SetColorHue->methodPointer);
 
     MethodInfo* m_SetColorSaturation = s_get_method_from_name(GrabbableObject, "SetColorSaturation", 1);
     if (!m_SetColorSaturation || !m_SetColorSaturation->methodPointer) return;
     using t_SetColorSaturation = void(*)(Il2CppObject*, float);
-    auto SetColorSaturation = (t_SetColorSaturation)STRIP_FP(m_SetMass->methodPointer);
+    auto SSetColorSaturation = (t_SetColorSaturation)STRIP_FP(m_SetMass->methodPointer);
+
+    MethodInfo* m_SetNormalizedScaleModifier = s_get_method_from_name(GrabbableObject, "SetNormalizedScaleModifier", 1);
+    if (!m_SetNormalizedScaleModifier || !m_SetNormalizedScaleModifier->methodPointer) return;
+    using t_SetNormalizedScaleModifier = void(*)(Il2CppObject*, float);
+    auto SetNormalizedScaleModifier = (t_SetNormalizedScaleModifier)STRIP_FP(m_SetMass->methodPointer);
 
     MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
     if (!spawn_GO || !spawn_GO->methodPointer) return;
@@ -2963,12 +2968,18 @@ static void ExecutePlayerAction()
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
                 SetMass(crossb, 5000050000.f);
             }
-            if(g_cfgTargetAction == "Light Stick")
+            if(g_cfgTargetAction == "Color Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetColorHue(crossb, 50000.f);
-                SetColorSaturation(crossb, 50000.f);
+                SetColorHue(crossb, 300.f);
+                SetColorSaturation(crossb, 500.f);
+            }
+            if(g_cfgTargetAction == "Scale Stick")
+            {
+                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
+                SetNormalizedScaleModifier(crossb, 255.f);
             }
         }
     }
