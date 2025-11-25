@@ -2645,7 +2645,7 @@ static void FillRootItems(Il2CppObject* backpack)
     NSLog(@"[Kitty] FillRootItems: capacity=%d count=%d (target add=24)", cap, cnt);
 
     // Add 24 shorts of value 1
-    for (int i = 0; i < 0; ++i) {
+    for (int i = 0; i < 80; ++i) {
         int16_t v = (int16_t)1;
         void* argsAdd[1] = { &v };
 
@@ -2795,6 +2795,76 @@ static void DuplicateFirstItem(Il2CppObject* backpack)
     }
 
     NSLog(@"[Kitty] DuplicateFirstItem: duplicated first entry to 81 total");
+}
+static void ClearRootItems(Il2CppObject* backpack)
+{
+    if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] ClearRootItems: missing il2cpp symbols/classes");
+        return;
+    }
+
+    // Get the rootItems property getter
+    static MethodInfo* m_getRootItems = nullptr;
+    if (!m_getRootItems) {
+        m_getRootItems = s_get_method_from_name(BackpackItem, "get_rootItems", 0);
+        if (!m_getRootItems || !m_getRootItems->methodPointer) {
+            NSLog(@"[Kitty] ClearRootItems: rootItems getter not found");
+            return;
+        }
+    }
+
+    // Invoke getter -> boxed NetworkLinkedList<short>
+    Il2CppException* ex = nullptr;
+    Il2CppObject* boxedList = s_runtime_invoke(m_getRootItems, backpack, nullptr, &ex);
+    if (ex || !boxedList) {
+        NSLog(@"[Kitty] ClearRootItems: get_rootItems failed ex=%p list=%p", ex, boxedList);
+        return;
+    }
+
+    // Unbox: pointer to struct data
+    void* listThis = (void*)((char*)boxedList + sizeof(Il2CppObject));
+
+    // Resolve methods from the boxed list's class
+    Il2CppClass* listClass = s_object_get_class(boxedList);
+    if (!listClass) {
+        NSLog(@"[Kitty] ClearRootItems: listClass NULL");
+        return;
+    }
+
+    static MethodInfo* m_Clear = nullptr;
+    static MethodInfo* m_getCount = nullptr;
+
+    if (!m_Clear) {
+        m_Clear = s_get_method_from_name(listClass, "Clear", 0);
+        if (!m_Clear || !m_Clear->methodPointer) {
+            NSLog(@"[Kitty] ClearRootItems: Clear() not found");
+            return;
+        }
+    }
+    if (!m_getCount) {
+        m_getCount = s_get_method_from_name(listClass, "get_Count", 0);
+    }
+
+    // Call Clear()
+    ex = nullptr;
+    s_runtime_invoke(m_Clear, listThis, nullptr, &ex);
+    if (ex) {
+        NSLog(@"[Kitty] ClearRootItems: Clear() threw ex=%p", ex);
+        return;
+    }
+
+    // Verify count after clear
+    if (m_getCount) {
+        ex = nullptr;
+        Il2CppObject* boxedCnt = s_runtime_invoke(m_getCount, listThis, nullptr, &ex);
+        if (!ex && boxedCnt) {
+            int cnt = *(int*)((char*)boxedCnt + sizeof(Il2CppObject));
+            NSLog(@"[Kitty] ClearRootItems: done, new count=%d", cnt);
+            return;
+        }
+    }
+
+    NSLog(@"[Kitty] ClearRootItems: done");
 }
 
 
@@ -3196,22 +3266,20 @@ static void ExecutePlayerAction()
                 Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
-                Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_pelican_case"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
-                Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
+                for (int i = 0; i < 23; ++i) 
+                {
+                    Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_pelican_case"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
+                    Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
 
-                auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
-                auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+                    auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+                    auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
 
-                TryAddItem(quiver, aple);
-                TryAddItem(quiver, aple);
-                TryAddItem(quiver, aple);
-                TryAddItem(quiver, aple);
-                TryAddItem(quiver, aple);
-                TryAddItem(quiver, aple);
-                TryAddItem(quiver, aple);
+                    TryAddItem(quiver, aple);
+                }
 
                 DuplicateFirstItem(quiver);
-                FillRootItems(quiver);
+                //FillRootItems(quiver);
+                ClearRootItems(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
