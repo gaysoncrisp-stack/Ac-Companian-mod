@@ -2645,7 +2645,7 @@ static void FillRootItems(Il2CppObject* backpack)
     NSLog(@"[Kitty] FillRootItems: capacity=%d count=%d (target add=24)", cap, cnt);
 
     // Add 24 shorts of value 1
-    for (int i = 0; i < 15; ++i) {
+    for (int i = 0; i < 0; ++i) {
         int16_t v = (int16_t)1;
         void* argsAdd[1] = { &v };
 
