@@ -3508,20 +3508,7 @@ static void ExecutePlayerAction()
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
-                if(!Shotgun)
-                {
-                    Shotgun = classMap["AnimalCompany"]["Shotgun"];
-                }
-
-                Il2CppObject* shotType = TypeOf(Shotgun);
-
-                Il2CppObject* goShotty = SpawnItem(CreateMonoString("item_prefab/item_shotgun"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
-                Il2CppObject* shotty = GO_GetComponentInChildren(goShotty, shotType);
-
-                auto m_set__ammoLeft = s_get_method_from_name(Shotgun, "set__ammoLeft", 1);
-                auto set_ammoLeft = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set__ammoLeft->methodPointer);
-
-                set_ammoLeft(shotty, 255);
+                ApplyBuff(np, g_netId.load());                
             }
         }
     }
