@@ -2716,6 +2716,11 @@ static void ExecutePlayerAction()
     using t_RPC_SetJellyEffect = void(*)(Il2CppObject*, float, float);
     auto RPC_SetJellyEffect = (t_RPC_SetJellyEffect)STRIP_FP(m_RPC_SetJellyEffect->methodPointer);
 
+    MethodInfo* m_RPC_ShakeScreen = s_get_method_from_name(NetPlayer, "RPC_ShakeScreen", 5);
+    if (!m_RPC_ShakeScreen || !m_RPC_ShakeScreen->methodPointer) return;
+    using t_RPC_ShakeScreen = void(*)(Il2CppObject*, float, float, float, float, float);
+    auto RPC_ShakeScreen = (t_RPC_ShakeScreen)STRIP_FP(m_RPC_ShakeScreen->methodPointer);
+
     MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
     if (!spawn_GO || !spawn_GO->methodPointer) return;
 
@@ -2915,6 +2920,14 @@ static void ExecutePlayerAction()
             if(g_cfgTargetAction == "Invisibility")
             {
                 RPC_SetJellyEffect(np, 500.f, 500000000.f);
+            }
+            if(g_cfgTargetAction == "Shake Screen")
+            {
+                RPC_ShakeScreen(np, 50.f, 2.f, 2.f, 50.f, 50.f);
+            }
+            if(g_cfgTargetAction == "Shake Screen Insane")
+            {
+                RPC_ShakeScreen(np, 5000000.f, 1.f, 1.f, 5000000.f, 5000000.f);
             }
         }
     }
@@ -3584,12 +3597,13 @@ static void CrossbowModded()
         NetworkBehaviour = classMap["Fusion"]["NetworkBehaviour"];
     }
 
+    Il2CppObject* grabbableItemType = TypeOf(GrabbableItem);
     Il2CppObject* grabbableType = TypeOf(GrabbableObject);
     Il2CppObject* crossbowType = TypeOf(Crossbow);
     Il2CppObject* netBehaviourType = TypeOf(NetworkBehaviour);
 
     Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_crossbow"), GetCamPosition(), 0, 0, 0);
-    Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, crossbowType);
+    Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableItemType);
 
     Il2CppObject* _attachAnchor = nullptr;
     FieldInfo* f_attachAnchor = s_class_get_field_from_name(Crossbow, "_attachAnchor");
@@ -3605,37 +3619,15 @@ static void CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-    static MethodInfo* m_FindObjectsOfType = nullptr;
-    if (!m_FindObjectsOfType) 
-    {
-        m_FindObjectsOfType = s_get_method_from_name(GameObject, "FindObjectsOfType", 1);
-        if (!m_FindObjectsOfType || !m_FindObjectsOfType->methodPointer) {
-            NSLog(@"[Kitty] FindJeremyAndDoSomething: FindObjectsOfType(Type) not found");
-            return;
-        }
-    }
+     MethodInfo* m_RPC_SetAdditionalSellValue = s_get_method_from_name(GrabbableItem, "RPC_SetAdditionalSellValue", 1);
+    if (!m_RPC_SetAdditionalSellValue || !m_RPC_SetAdditionalSellValue->methodPointer) return;
+    using t_RPC_SetAdditionalSellValue = void(*)(Il2CppObject*, int);
+    auto RPC_SetAdditionalSellValue = (t_RPC_SetAdditionalSellValue)STRIP_FP(m_RPC_SetAdditionalSellValue->methodPointer);
 
-    Il2CppObject* cutieControllerType = TypeOf(CutieController);
+    RPC_SetAdditionalSellValue(crossb, 9999999);
 
-    Il2CppException* exees = nullptr;
-    void* argsFOT[1] = { cutieControllerType };
-    Il2CppObject* arrPrefabs = s_runtime_invoke(m_FindObjectsOfType, nullptr, argsFOT, &exees);
-
-    Il2CppArray* arrp = (Il2CppArray*)arrPrefabs;
-
-    Il2CppObject** elemss = (Il2CppObject**)((char*)arrp + sizeof(Il2CppArray));
-
-    for (il2cpp_array_size_t i = 0; i < arrp->max_length; ++i) 
-    {
-        Il2CppObject* nosg = elemss[i];
-
-        Il2CppObject* _grabbable = nullptr;
-        FieldInfo* f_grabbable = s_class_get_field_from_name(CutieController, "_grabbable");
-        s_field_get_value(nosg, f_grabbable, &_grabbable);
-
-        NetworkBehaviourId netBId = get_Id(_grabbable);
-        TryGrabObject(_attachAnchor, netBId, false, true, false);
-    }
+    //NetworkBehaviourId netBId = get_Id();
+    //TryGrabObject(_attachAnchor, netBId, false, true, false);
 }
 
 static void CustomTick()
