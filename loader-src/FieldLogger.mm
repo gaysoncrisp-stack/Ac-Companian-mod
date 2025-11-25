@@ -3345,7 +3345,6 @@ static void InitHooks()
 }
 
 static Il2CppClass* Crossbow;
-static Il2CppClass* NetworkBehaviour;
 
 static bool CrossbowsDone;
 
