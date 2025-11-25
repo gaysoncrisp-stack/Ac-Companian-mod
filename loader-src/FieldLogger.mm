@@ -2972,11 +2972,10 @@ static void DupeRootItemsAndSetCapacity(Il2CppObject* backpack)
     if (!ex && boxedCnt2) cnt2 = *(int*)((char*)boxedCnt2 + sizeof(Il2CppObject));
     NSLog(@"[Kitty] DupeRootItemsAndSetCapacity: done, new count=%d, _capacity=999", cnt2);
 }
-static void AddNullItems(Il2CppObject* backpack)
+static void DuplicateNullItems(Il2CppObject* backpack)
 {
-    if (!backpack || !BackpackItem || !s_get_method_from_name || 
-        !s_runtime_invoke || !s_object_get_class) {
-        NSLog(@"[Kitty] AddNullItems: missing il2cpp symbols/classes");
+        if (!backpack || !BackpackItem || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
+        NSLog(@"[Kitty] DuplicateNullItems: missing il2cpp symbols/classes");
         return;
     }
 
@@ -2985,7 +2984,7 @@ static void AddNullItems(Il2CppObject* backpack)
     if (!m_getAllItems) {
         m_getAllItems = s_get_method_from_name(BackpackItem, "get_allItems", 0);
         if (!m_getAllItems || !m_getAllItems->methodPointer) {
-            NSLog(@"[Kitty] AddNullItems: get_allItems not found");
+            NSLog(@"[Kitty] DuplicateNullItems: get_allItems not found");
             return;
         }
     }
@@ -2993,55 +2992,111 @@ static void AddNullItems(Il2CppObject* backpack)
     Il2CppException* ex = nullptr;
     Il2CppObject* boxedDict = s_runtime_invoke(m_getAllItems, backpack, nullptr, &ex);
     if (ex || !boxedDict) {
-        NSLog(@"[Kitty] AddNullItems: get_allItems failed ex=%p dict=%p", ex, boxedDict);
+        NSLog(@"[Kitty] DuplicateNullItems: get_allItems failed ex=%p dict=%p", ex, boxedDict);
         return;
     }
 
     void* dictThis = (void*)((char*)boxedDict + sizeof(Il2CppObject));
     Il2CppClass* dictClass = s_object_get_class(boxedDict);
     if (!dictClass) {
-        NSLog(@"[Kitty] AddNullItems: dictClass NULL");
+        NSLog(@"[Kitty] DuplicateNullItems: dictClass NULL");
         return;
     }
 
-    // Resolve Add(key,value) and get_Count
-    static MethodInfo* m_Add = nullptr;
-    static MethodInfo* m_getCount = nullptr;
-    if (!m_Add)      m_Add      = s_get_method_from_name(dictClass, "Add", 2);
-    if (!m_getCount) m_getCount = s_get_method_from_name(dictClass, "get_Count", 0);
-
-    if (!m_Add || !m_Add->methodPointer) {
-        NSLog(@"[Kitty] AddNullItems: Add(key,value) not found");
-        return;
-    }
-
-    // Get current count (for key offset)
-    int startKey = 1000; // arbitrary base if you don’t care about collisions
-    if (m_getCount) {
-        ex = nullptr;
-        Il2CppObject* boxedCnt = s_runtime_invoke(m_getCount, dictThis, nullptr, &ex);
-        if (!ex && boxedCnt) {
-            int cnt = *(int*)((char*)boxedCnt + sizeof(Il2CppObject));
-            startKey = cnt + 1; // use count as starting key
+    // Resolve enumerator and set_Item
+    static MethodInfo* m_GetEnumerator = nullptr;
+    static MethodInfo* m_setItem = nullptr;
+    if (!m_GetEnumerator || !m_setItem) {
+        m_GetEnumerator = s_get_method_from_name(dictClass, "GetEnumerator", 0);
+        m_setItem       = s_get_method_from_name(dictClass, "set_Item", 2);
+        if (!m_setItem) m_setItem = s_get_method_from_name(dictClass, "Set", 2);
+        if (!m_GetEnumerator || !m_setItem || !m_GetEnumerator->methodPointer || !m_setItem->methodPointer) {
+            NSLog(@"[Kitty] DuplicateNullItems: dict methods missing");
+            return;
         }
     }
 
-    // Add 80 null entries
+    // Get enumerator
+    ex = nullptr;
+    Il2CppObject* boxedEnum = s_runtime_invoke(m_GetEnumerator, dictThis, nullptr, &ex);
+    if (ex || !boxedEnum) {
+        NSLog(@"[Kitty] DuplicateNullItems: GetEnumerator failed ex=%p enum=%p", ex, boxedEnum);
+        return;
+    }
+
+    void* enumThis = (void*)((char*)boxedEnum + sizeof(Il2CppObject));
+    Il2CppClass* enumClass = s_object_get_class(boxedEnum);
+    if (!enumClass) {
+        NSLog(@"[Kitty] DuplicateNullItems: enumClass NULL");
+        return;
+    }
+
+    static MethodInfo* m_MoveNext   = nullptr;
+    static MethodInfo* m_getCurrent = nullptr;
+    static FieldInfo*  f_kv_key     = nullptr;
+    if (!m_MoveNext || !m_getCurrent) {
+        m_MoveNext   = s_get_method_from_name(enumClass, "MoveNext", 0);
+        m_getCurrent = s_get_method_from_name(enumClass, "get_Current", 0);
+        if (!m_MoveNext || !m_getCurrent || !m_MoveNext->methodPointer || !m_getCurrent->methodPointer) {
+            NSLog(@"[Kitty] DuplicateNullItems: MoveNext/get_Current not found");
+            return;
+        }
+    }
+
+    // Grab the first KV to use its key as base
+    ex = nullptr;
+    Il2CppObject* boxedHasMore = s_runtime_invoke(m_MoveNext, enumThis, nullptr, &ex);
+    if (ex || !boxedHasMore) {
+        NSLog(@"[Kitty] DuplicateNullItems: MoveNext failed ex=%p", ex);
+        return;
+    }
+    bool hasMore = *(bool*)((char*)boxedHasMore + sizeof(Il2CppObject));
+    if (!hasMore) {
+        NSLog(@"[Kitty] DuplicateNullItems: dict empty");
+        return;
+    }
+
+    ex = nullptr;
+    Il2CppObject* boxedKV = s_runtime_invoke(m_getCurrent, enumThis, nullptr, &ex);
+    if (ex || !boxedKV) {
+        NSLog(@"[Kitty] DuplicateNullItems: get_Current failed ex=%p kv=%p", ex, boxedKV);
+        return;
+    }
+
+    Il2CppClass* kvClass = s_object_get_class(boxedKV);
+    if (!kvClass) {
+        NSLog(@"[Kitty] DuplicateNullItems: kvClass NULL");
+        return;
+    }
+    if (!f_kv_key) {
+        f_kv_key = s_class_get_field_from_name(kvClass, "key");
+        if (!f_kv_key) {
+            NSLog(@"[Kitty] DuplicateNullItems: key field not found");
+            return;
+        }
+    }
+
+    short baseKey = 0;
+    s_field_get_value(boxedKV, f_kv_key, &baseKey);
+
+    // Add 80 entries with null values using incremental keys
     int added = 0;
-    for (int i = 0; i < 80; ++i) {
-        short key = (short)(startKey + i);
-        void* argsAdd[2] = { &key, nullptr };
+    for (int i = 1; i <= 80; ++i) {
+        short newKey = (short)(baseKey + i);
+        void* argsSet[2] = { &newKey, nullptr };
         ex = nullptr;
-        s_runtime_invoke(m_Add, dictThis, argsAdd, &ex);
+        s_runtime_invoke(m_setItem, dictThis, argsSet, &ex);
         if (ex) {
-            NSLog(@"[Kitty] AddNullItems: Add key=%d threw ex=%p", (int)key, ex);
+            NSLog(@"[Kitty] DuplicateNullItems: set_Item key=%d ex=%p", (int)newKey, ex);
             continue;
         }
         added++;
     }
 
-    NSLog(@"[Kitty] AddNullItems: added %d null entries", added);
+    NSLog(@"[Kitty] DuplicateNullItems: added %d null entries (based on key %d)", added, (int)baseKey);
 }
+
+
 
 
 
@@ -3453,7 +3508,7 @@ static void ExecutePlayerAction()
 
                 TryAddItem(quiver, aple);
                 
-                AddNullItems(quiver);
+                DuplicateNullItems(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
