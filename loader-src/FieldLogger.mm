@@ -3605,7 +3605,7 @@ static void CrossbowModded()
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
     auto nm_f_instance = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
-    if (!nm_f_instance || !nm_f_instance->methodPointer) return zero;
+    if (!nm_f_instance || !nm_f_instance->methodPointer) return;
     auto get_instance  = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
 
     Il2CppObject* nsInstance = get_instance();
@@ -3642,7 +3642,7 @@ static void CustomTick()
         //CrossbowChildren();
         if(!CrossbowsDone)
         {
-            SpawnGrenadeLauncherWithContents();
+            CrossbowModded();
             CrossbowsDone = true;
         }
     }
