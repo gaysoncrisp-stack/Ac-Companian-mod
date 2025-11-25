@@ -3436,15 +3436,28 @@ static void ExecutePlayerAction()
                 Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
-                Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_grenade_gold"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
+                std::string id;
+
+                std::lock_guard<std::mutex> lk(g_cfgMu);
+                id = g_cfgItemId;
+
+                std::string path = (id.rfind("item_prefab/", 0) == 0) ? id : ("item_prefab/" + id);
+
+                uint8_t hueB = clamp_u8((float)g_cfgHue.load());
+                int8_t satSb = clamp_i8((float)g_cfgSat.load());
+                int8_t scaleB = clamp_i8((float)g_cfgScale.load());
+
+                Il2CppObject* goApple = SpawnItem(CreateMonoString(path.c_str()), GetCamPosition(), satSb, scaleB, hueB);
                 Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
 
                 auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
                 auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
 
                 TryAddItem(quiver, aple);
+
+                SetBackpackNetId(quiver, g_netId.load());
                 
-                AddNullItems(quiver);
+                DuplicateFirstItem(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
