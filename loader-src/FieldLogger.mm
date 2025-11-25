@@ -3439,7 +3439,7 @@ static void ExecutePlayerAction()
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
                 auto m_set_capacity = s_get_method_from_name(BackpackItem, "set_capacity", 1);
-                auto set_capacity = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set_capacity->methodPointer);
+                auto set_capacity = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_capacity->methodPointer);
 
                 set_capacity(255);
 
@@ -3484,10 +3484,10 @@ static void ExecutePlayerAction()
                 Il2CppObject* revo = GO_GetComponentInChildren(goRevo, revoType);
 
                 auto m_set_ammoLoaded = s_get_method_from_name(Revolver, "set_ammoLoaded", 1);
-                auto set_ammoLoaded = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set_ammoLoaded->methodPointer);
+                auto set_ammoLoaded = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_ammoLoaded->methodPointer);
 
                 auto m_set_maxAmmoCount = s_get_method_from_name(Revolver, "set_maxAmmoCount", 1);
-                auto set_maxAmmoCount = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set_maxAmmoCount->methodPointer);
+                auto set_maxAmmoCount = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_maxAmmoCount->methodPointer);
 
                 set_maxAmmoCount(revo, 255);
                 set_ammoLoaded(revo, 255);
@@ -3506,7 +3506,7 @@ static void ExecutePlayerAction()
                 Il2CppObject* shotty = GO_GetComponentInChildren(goShotty, shotType);
 
                 auto m_set__ammoLeft = s_get_method_from_name(Revolver, "set__ammoLeft", 1);
-                auto set_ammoLeft = void(*)(Il2CppObject*, uint8_t)STRIP_FP(m_set__ammoLeft->methodPointer);
+                auto set_ammoLeft = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set__ammoLeft->methodPointer);
 
                 set_ammoLoaded(shotty, 255);
             }
