@@ -2571,7 +2571,42 @@ static MethodInfo* FindSpawnItemGO(Il2CppClass* klass) {
     }
     return nullptr;
 }
+static void FillRootItems(Il2CppObject* backpack)
+{
+    if (!backpack || !s_get_method_from_name || !s_runtime_invoke) {
+        NSLog(@"[Kitty] FillRootItems: missing symbols");
+        return;
+    }
 
+    // Get the rootItems property getter
+    auto m_getRootItems = s_get_method_from_name(BackpackItem, "get_rootItems", 0);
+    if (!m_getRootItems || !m_getRootItems->methodPointer) {
+        NSLog(@"[Kitty] FillRootItems: rootItems getter not found");
+        return;
+    }
+
+    // Invoke getter -> returns NetworkLinkedList<short>
+    Il2CppObject* rootList = (Il2CppObject*)s_runtime_invoke(m_getRootItems, backpack, nullptr, nullptr);
+    if (!rootList) {
+        NSLog(@"[Kitty] FillRootItems: rootItems list is null");
+        return;
+    }
+
+    // Get Add method on NetworkLinkedList<short>
+    auto m_Add = s_get_method_from_name(NetworkLinkedListShort, "Add", 1);
+    if (!m_Add || !m_Add->methodPointer) {
+        NSLog(@"[Kitty] FillRootItems: Add method not found");
+        return;
+    }
+    auto AddShort = (void(*)(Il2CppObject*, int16_t))STRIP_FP(m_Add->methodPointer);
+
+    // Push 24 shorts with value 1
+    for (int i = 0; i < 24; i++) {
+        AddShort(rootList, (int16_t)1);
+    }
+
+    NSLog(@"[Kitty] FillRootItems: added 24 shorts=1");
+}
 struct NetworkId { uint32_t Raw; };
 
 struct NetworkBehaviourId { int Behaviour; NetworkId Object; };
@@ -2964,22 +2999,21 @@ static void ExecutePlayerAction()
             }
             if(g_cfgTargetAction == "Really Heavy Stick")
             {
-                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
-                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetMass(crossb, 5000050000.f);
+                Il2CppObject* backpackType    = TypeOf(BackpackItem);
+                Il2CppObject* grabbableType = TypeOf(GrabbableItem);
+
+                Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)scaleB, (int8_t)satSb, (uint8_t)hueB);
+                Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
+
+                FillRootItems(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
-                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
-                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SSetColorHue(crossb, 255.f);
-                SSetColorSaturation(crossb, 127.f);
+
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
-                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
-                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetNormalizedScaleModifier(crossb, 50000500005000050000.f);
+                
             }
         }
     }
@@ -3636,6 +3670,8 @@ static void SpawnGrenadeLauncherWithContents()
                 NSLog(@"[Kitty] CheckToAddItem -> %d for %s", (int)ok, fullPath.c_str());
             }
 }
+
+
 static void CrossbowModded()
 {
     if(!Crossbow || !NetworkBehaviour)
