@@ -2949,16 +2949,9 @@ static void ExecutePlayerAction()
             }
             if(g_cfgTargetAction == "Really Heavy Stick")
             {
-                float inf = std::numeric_limits<float>::infinity();
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetMass(crossb, inf);
-            }
-            if(g_cfgTargetAction == "Light Stick")
-            {
-                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
-                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetMass(crossb, -5000000.f);
+                SetMass(crossb, 50000500005000050000.f);
             }
         }
     }
