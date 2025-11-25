@@ -2728,10 +2728,10 @@ static void ExecutePlayerAction()
     using t_RPC_ShakeScreen = void(*)(Il2CppObject*, float, float, float, float, float);
     auto RPC_ShakeScreen = (t_RPC_ShakeScreen)STRIP_FP(m_RPC_ShakeScreen->methodPointer);
 
-    MethodInfo* m_SetMass = s_get_method_from_name(GrabbableObject, "SetMass", 1);
-    if (!m_SetMass || !m_SetMass->methodPointer) return;
-    using t_SetMass = void(*)(Il2CppObject*, float);
-    auto SetMass = (t_SetMass)STRIP_FP(m_SetMass->methodPointer);
+    //MethodInfo* m_SetMass = s_get_method_from_name(GrabbableObject, "SetMass", 1);
+    //if (!m_SetMass || !m_SetMass->methodPointer) return;
+    //using t_SetMass = void(*)(Il2CppObject*, float);
+    //auto SetMass = (t_SetMass)STRIP_FP(m_SetMass->methodPointer);
 
     MethodInfo* m_SetColorHue = s_get_method_from_name(GrabbableObject, "SetColorHue", 1);
     if (!m_SetColorHue || !m_SetColorHue->methodPointer) return;
@@ -2960,13 +2960,13 @@ static void ExecutePlayerAction()
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetMass(crossb, 50000.f);
+                //SetMass(crossb, 50000.f);
             }
             if(g_cfgTargetAction == "Really Heavy Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-                SetMass(crossb, 5000050000.f);
+                //SetMass(crossb, 5000050000.f);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
