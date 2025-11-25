@@ -2728,10 +2728,10 @@ static void ExecutePlayerAction()
     using t_RPC_ShakeScreen = void(*)(Il2CppObject*, float, float, float, float, float);
     auto RPC_ShakeScreen = (t_RPC_ShakeScreen)STRIP_FP(m_RPC_ShakeScreen->methodPointer);
 
-    MethodInfo* m_RPC_SetStuckAnchor = s_get_method_from_name(GrabbableObject, "RPC_SetStuckAnchor", 4);
-    if (!m_RPC_SetStuckAnchor || !m_RPC_SetStuckAnchor->methodPointer) return;
-    using t_RPC_SetStuckAnchor = void(*)(Il2CppObject*, NetworkBehaviourId, Vector3, Quaternion, bool);
-    auto RPC_SetStuckAnchor = (t_RPC_SetStuckAnchor)STRIP_FP(m_RPC_SetStuckAnchor->methodPointer);
+    MethodInfo* m_SetMass = s_get_method_from_name(GrabbableObject, "SetMass", 1);
+    if (!m_SetMass || !m_SetMass->methodPointer) return;
+    using t_SetMass = void(*)(Il2CppObject*, float);
+    auto SetMass = (t_SetMass)STRIP_FP(m_SetMass->methodPointer);
 
     MethodInfo* spawn_GO = FindSpawnItemGO(PrefabGenerator);
     if (!spawn_GO || !spawn_GO->methodPointer) return;
@@ -2943,15 +2943,9 @@ static void ExecutePlayerAction()
             }
             if(g_cfgTargetAction == "Stick Items")
             {
-                MethodInfo* m_get_Id = s_get_method_from_name(NetworkBehaviour, "get_Id", 0);
-                if (!m_get_Id || !m_get_Id->methodPointer) return;
-                using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
-                auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
-
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
-
-                RPC_SetStuckAnchor(crossb, get_Id(np), transform_get_position(body), Quaternion{0.f, 0.f, 0.f, 1.f}, false);
+                SetMass(crossb, 50000.f);
             }
         }
     }
