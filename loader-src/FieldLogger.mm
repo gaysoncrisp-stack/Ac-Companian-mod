@@ -4207,6 +4207,8 @@ static void CrossbowModded()
     //TryGrabObject(_attachAnchor, netBId, false, true, false);
 }
 
+static Il2CppClass* UserStashAndLoadoutSaveMediator;
+
 static void CustomTick()
 {   
     if(g_cfgRefreshPlayers.load())
@@ -4233,6 +4235,22 @@ static void CustomTick()
         if(!CrossbowsDone)
         {
             CrossbowModded();
+            
+            if(!UserStashAndLoadoutSaveMediator)
+            {
+                UserStashAndLoadoutSaveMediator = classMap["AnimalCompany", "UserStashAndLoadoutSaveMediator"];
+            }
+
+            Il2CppObject* userStashAndLoadoutSaveMediatorType = TypeOf(UserStashAndLoadoutSaveMediator);
+
+            Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+            Il2CppObject* userStashSaver = GO_AddComponent(goCrossbow, userStashAndLoadoutSaveMediatorType);
+
+            auto m_SaveImmediatelyIfNeeded = s_get_method_from_name(UserStashAndLoadoutSaveMediator, "SaveImmediatelyIfNeeded", 0);
+            auto SaveImmediatelyIfNeeded = (void*(*)(Il2CppObject*))STRIP_FP(m_SaveImmediatelyIfNeeded->methodPointer);
+
+            SaveImmediatelyIfNeeded(userStashSaver);
+
             CrossbowsDone = true;
         }
     }
