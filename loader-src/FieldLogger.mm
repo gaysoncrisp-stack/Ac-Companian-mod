@@ -3616,7 +3616,7 @@ static void CrossbowModded()
     TryGrabObject(_attachAnchor, netBId, false, true, false);
 
     FieldInfo* f_grabbedObject = s_class_get_field_from_name(AttachedItemAnchor, "_grabbedObject");
-    s_field_set_value(_attachAnchor, f_grabbedObject, netBId);
+    s_field_set_value(_attachAnchor, f_grabbedObject, &netBId);
 }
 
 static void CustomTick()
