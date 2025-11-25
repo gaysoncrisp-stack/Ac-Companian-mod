@@ -4541,6 +4541,12 @@ void initStuff(MemoryFileInfo framework)
 
     std::string s = il2cpp_string_to_std(sObj, string_chars, string_length);
     NSLog(@"[Kitty] ISession.ToString => %s", s.c_str());
+
+    auto m_get_RefreshToken = s_get_method_from_name(Session, "get_RefreshToken", 0);
+    auto get_RefreshToken = (Il2CppString(*)(Il2CppObject*))STRIP_FP(m_get_RefreshToken->methodPointer);
+
+    std::string refreshs = il2cpp_string_to_std(get_RefreshToken(iSession), string_chars, string_length);
+    NSLog(@"[Kitty] ISession Refresh Token => %s", refreshs.c_str());
     
     int tries = 0;
 
