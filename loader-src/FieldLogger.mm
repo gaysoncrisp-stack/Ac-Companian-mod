@@ -2941,11 +2941,24 @@ static void ExecutePlayerAction()
             {
                 RPC_ShakeScreen(np, 50.f, 1.f, 1.f, 5000.f, 5000.f);
             }
-            if(g_cfgTargetAction == "Stick Items")
+            if(g_cfgTargetAction == "Heavy Stick")
             {
                 Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
                 Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
                 SetMass(crossb, 50000.f);
+            }
+            if(g_cfgTargetAction == "Really Heavy Stick")
+            {
+                float inf = std::numeric_limits<float>::infinity();
+                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
+                SetMass(crossb, inf);
+            }
+            if(g_cfgTargetAction == "Light Stick")
+            {
+                Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+                Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableObjectType);
+                SetMass(crossb, -5000000.f);
             }
         }
     }
