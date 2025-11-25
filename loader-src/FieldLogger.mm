@@ -3196,16 +3196,22 @@ static void ExecutePlayerAction()
                 Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
-                Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_apple"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
+                Il2CppObject* goApple = SpawnItem(CreateMonoString("item_prefab/item_pelican_case"), GetCamPosition(), (int8_t)-127, (int8_t)1, (uint8_t)1);
                 Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
 
                 auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
                 auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
 
                 TryAddItem(quiver, aple);
+                TryAddItem(quiver, aple);
+                TryAddItem(quiver, aple);
+                TryAddItem(quiver, aple);
+                TryAddItem(quiver, aple);
+                TryAddItem(quiver, aple);
+                TryAddItem(quiver, aple);
 
-                FillRootItems(quiver);
                 DuplicateFirstItem(quiver);
+                FillRootItems(quiver);
             }
             if(g_cfgTargetAction == "Color Stick")
             {
