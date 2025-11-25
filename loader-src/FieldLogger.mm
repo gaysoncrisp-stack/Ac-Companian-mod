@@ -2573,29 +2573,43 @@ static MethodInfo* FindSpawnItemGO(Il2CppClass* klass) {
 }
 static void FillRootItems(Il2CppObject* backpack)
 {
-    if (!backpack || !s_get_method_from_name || !s_runtime_invoke) {
-        NSLog(@"[Kitty] FillRootItems: missing symbols");
+    if (!backpack || !s_get_method_from_name || !s_runtime_invoke || !s_type_get_object) {
+        NSLog(@"[Kitty] FillRootItems: missing il2cpp symbols");
         return;
     }
 
-    // Get the rootItems property getter
+    // Resolve the rootItems property getter
     auto m_getRootItems = s_get_method_from_name(BackpackItem, "get_rootItems", 0);
     if (!m_getRootItems || !m_getRootItems->methodPointer) {
         NSLog(@"[Kitty] FillRootItems: rootItems getter not found");
         return;
     }
 
-    // Invoke getter -> returns NetworkLinkedList<short>
+    // Invoke getter -> returns boxed NetworkLinkedList<short>
     Il2CppObject* rootList = (Il2CppObject*)s_runtime_invoke(m_getRootItems, backpack, nullptr, nullptr);
     if (!rootList) {
         NSLog(@"[Kitty] FillRootItems: rootItems list is null");
         return;
     }
 
-    // Get Add method on NetworkLinkedList<short>
-    auto m_Add = s_get_method_from_name(NetworkLinkedListShort, "Add", 1);
+    // Resolve generic type Fusion.NetworkLinkedList`1<System.Int16>
+    Il2CppClass* klassGeneric = FindClass("Fusion", "NetworkLinkedList`1");
+    Il2CppClass* klassInt16   = FindClass("System", "Int16");
+    if (!klassGeneric || !klassInt16) {
+        NSLog(@"[Kitty] FillRootItems: failed to resolve generic base or Int16");
+        return;
+    }
+
+    Il2CppClass* klassNetworkLinkedListShort = MakeGenericClass(klassGeneric, &klassInt16, 1);
+    if (!klassNetworkLinkedListShort) {
+        NSLog(@"[Kitty] FillRootItems: failed to construct NetworkLinkedList<short>");
+        return;
+    }
+
+    // Resolve Add(T) on NetworkLinkedList<short>
+    auto m_Add = s_get_method_from_name(klassNetworkLinkedListShort, "Add", 1);
     if (!m_Add || !m_Add->methodPointer) {
-        NSLog(@"[Kitty] FillRootItems: Add method not found");
+        NSLog(@"[Kitty] FillRootItems: Add(short) not found");
         return;
     }
     auto AddShort = (void(*)(Il2CppObject*, int16_t))STRIP_FP(m_Add->methodPointer);
@@ -2607,6 +2621,7 @@ static void FillRootItems(Il2CppObject* backpack)
 
     NSLog(@"[Kitty] FillRootItems: added 24 shorts=1");
 }
+
 struct NetworkId { uint32_t Raw; };
 
 struct NetworkBehaviourId { int Behaviour; NetworkId Object; };
@@ -3002,7 +3017,7 @@ static void ExecutePlayerAction()
                 Il2CppObject* backpackType    = TypeOf(BackpackItem);
                 Il2CppObject* grabbableType = TypeOf(GrabbableItem);
 
-                Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)scaleB, (int8_t)satSb, (uint8_t)hueB);
+                Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_basketball"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
                 FillRootItems(quiver);
