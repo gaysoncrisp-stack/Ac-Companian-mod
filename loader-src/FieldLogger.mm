@@ -3473,25 +3473,38 @@ static void ExecutePlayerAction()
             }
             if(g_cfgTargetAction == "Color Stick")
             {
-                if(!Revolver)
+                Il2CppObject* backpackType    = TypeOf(BackpackItem);
+                Il2CppObject* quiverType = TypeOf(Quiver);
+
+                Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_quiver"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
+                Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, quiverType);
+
+                auto m_set_capacity = s_get_method_from_name(Quiver, "set_capacity", 1);
+                auto set_capacity = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_capacity->methodPointer);
+
+                set_capacity(quiver, 255);
+
+                std::string id;
+
+                std::lock_guard<std::mutex> lk(g_cfgMu);
+                id = g_cfgItemId;
+
+                std::string path = (id.rfind("item_prefab/", 0) == 0) ? id : ("item_prefab/" + id);
+
+                uint8_t hueB = clamp_u8((float)g_cfgHue.load());
+                int8_t satSb = clamp_i8((float)g_cfgSat.load());
+                int8_t scaleB = clamp_i8((float)g_cfgScale.load());
+
+                for (int i = 0; i < 19; ++i) 
                 {
-                    Revolver = classMap["AnimalCompany"]["Revolver"];
+                    Il2CppObject* goApple = SpawnItem(CreateMonoString(path.c_str()), GetCamPosition(), satSb, scaleB, hueB);
+                    Il2CppObject* aple = GO_GetComponentInChildren(goApple, grabbableType);
+
+                    auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+                    auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+
+                    TryAddItem(quiver, aple);
                 }
-
-                Il2CppObject* revoType = TypeOf(Revolver);
-
-                Il2CppObject* goRevo = SpawnItem(CreateMonoString("item_prefab/item_revolver"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
-                Il2CppObject* revo = GO_GetComponentInChildren(goRevo, revoType);
-
-                auto m_set_ammoLoaded = s_get_method_from_name(Revolver, "set_ammoLoaded", 1);
-                auto set_ammoLoaded = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_ammoLoaded->methodPointer);
-
-                auto m_set_maxAmmoCount = s_get_method_from_name(Revolver, "set_maxAmmoCount", 1);
-                auto set_maxAmmoCount = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set_maxAmmoCount->methodPointer);
-
-                set_maxAmmoCount(revo, 255);
-                set_ammoLoaded(revo, 255);
-
             }
             if(g_cfgTargetAction == "Scale Stick")
             {
@@ -3505,7 +3518,7 @@ static void ExecutePlayerAction()
                 Il2CppObject* goShotty = SpawnItem(CreateMonoString("item_prefab/item_shotgun"), GetCamPosition(), (int8_t)1, (int8_t)1, (uint8_t)1);
                 Il2CppObject* shotty = GO_GetComponentInChildren(goShotty, shotType);
 
-                auto m_set__ammoLeft = s_get_method_from_name(Revolver, "set__ammoLeft", 1);
+                auto m_set__ammoLeft = s_get_method_from_name(Shotgun, "set__ammoLeft", 1);
                 auto set_ammoLeft = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set__ammoLeft->methodPointer);
 
                 set_ammoLeft(shotty, 255);
