@@ -3508,7 +3508,7 @@ static void ExecutePlayerAction()
                 auto m_set__ammoLeft = s_get_method_from_name(Revolver, "set__ammoLeft", 1);
                 auto set_ammoLeft = (void(*)(Il2CppObject*, uint8_t))STRIP_FP(m_set__ammoLeft->methodPointer);
 
-                set_ammoLoaded(shotty, 255);
+                set_ammoLeft(shotty, 255);
             }
         }
     }
