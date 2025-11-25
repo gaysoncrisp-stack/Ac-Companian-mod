@@ -3604,18 +3604,19 @@ static void CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-    auto nm_f_instance = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
-    if (!nm_f_instance || !nm_f_instance->methodPointer) return;
-    auto get_instance  = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
-
+    auto nm_f_instance  = s_get_method_from_name(NetSpectator, "get_localInstance", 0);
+    auto get_instance   = (Il2CppObject*(*)())STRIP_FP(nm_f_instance->methodPointer);
     Il2CppObject* nsInstance = get_instance();
 
-    Il2CppObject* _grabbable = nullptr;
-    FieldInfo* f_grabbable = s_class_get_field_from_name(NetSpectator, "_grabbable");
-    s_field_get_value(nsInstance, f_grabbable, &_grabbable);
+    auto nm_vrPlayer  = s_get_method_from_name(NetSpectator, "get_associatedVRPlayer", 0);
+    auto get_vrPlayer = (Il2CppObject*(*)(Il2CppObject*))STRIP_FP(nm_vrPlayer->methodPointer);
+    Il2CppObject* vr = get_vrPlayer(nsInstance);
 
-    NetworkBehaviourId netBId = get_Id(_grabbable);
+    NetworkBehaviourId netBId = get_Id(vr);
     TryGrabObject(_attachAnchor, netBId, false, true, false);
+
+    FieldInfo* f_grabbedObject = s_class_get_field_from_name(AttachedItemAnchor, "_grabbedObject");
+    s_field_set_value(_attachAnchor, f_grabbedObject, netBId);
 }
 
 static void CustomTick()
