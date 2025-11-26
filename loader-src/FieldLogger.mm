@@ -3909,6 +3909,7 @@ static Il2CppObject* (*orig_GetAuthVars)(Il2CppObject* vars, MethodInfo* method)
 
 static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars, MethodInfo* method)
 {
+    NSLog(@"[Kitty] nigger");
     Il2CppObject* resultDict = orig_GetAuthVars(vars, method);
     if (!resultDict) return resultDict;
 
@@ -4552,7 +4553,8 @@ void initStuff(MemoryFileInfo framework)
     auto assemblies = get_assemblies(domain, &size);
 
     int okRealClasses = 0;
-    for (int i = 0; i < (int)size; ++i) {
+    for (int i = 0; i < (int)size; ++i) 
+    {
         auto assembly = assemblies[i];
         auto image = get_image(assembly);
         if (!image) continue;
@@ -4623,6 +4625,8 @@ void initStuff(MemoryFileInfo framework)
     NetworkBehaviour           = classMap["Fusion"]["NetworkBehaviour"];
     AppStartup           = classMap["AnimalCompany"]["AppStartup"];
     AuthCommands           = classMap["AnimalCompany"]["AuthCommands"];
+    
+    InitHooks();
 
     Il2CppObject* appStartupType = TypeOf(AppStartup);
 
@@ -4645,8 +4649,6 @@ void initStuff(MemoryFileInfo framework)
     }
     KITTY_LOGI("Unity resolver: GameObject=%p SetActive=%p GetComponent=%p GetComponentInChildren=%p",
                GameObject, (void*)GO_SetActive, (void*)GO_GetComponent, (void*)GO_GetComponentInChildren);
-
-    InitHooks();
 
     Il2CppObject* ffind = GO_Find(CreateMonoString("App"));
     Il2CppObject* compone = GO_GetComponent(ffind, appStartupType);
