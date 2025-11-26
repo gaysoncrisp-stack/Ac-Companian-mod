@@ -406,11 +406,13 @@ struct Quaternion { float x,y,z,w; };
 static void (*s_field_static_get_value)(FieldInfo*, void*) = nullptr;
 
 using t_GO_SetActive              = void(*)(Il2CppObject*, bool);
+using t_GO_Find           = Il2CppObject*(*)(Il2CppString*);
 using t_GO_GetComponent           = Il2CppObject*(*)(Il2CppObject*, Il2CppObject*);
 using t_GO_GetComponentInChildren = Il2CppObject*(*)(Il2CppObject*, Il2CppObject*);
 using t_GO_AddComponent = Il2CppObject*(*)(Il2CppObject*, Il2CppObject*);
 using t_SpawnItem                 = Il2CppObject*(*)(Il2CppString*, Vector3, Quaternion, void*);
 
+static t_GO_Find           GO_Find = nullptr;
 static t_GO_SetActive              GO_SetActive = nullptr;
 static t_GO_GetComponent           GO_GetComponent = nullptr;
 static t_GO_GetComponentInChildren GO_GetComponentInChildren = nullptr;
@@ -4568,32 +4570,6 @@ void initStuff(MemoryFileInfo framework)
     AppStartup           = classMap["AnimalCompany"]["AppStartup"];
 
     Il2CppObject* appStartupType = TypeOf(AppStartup);
-
-    static MethodInfo* m_FindObjectsOfType = nullptr;
-
-                Il2CppException* exees = nullptr;
-                void* argsFOT[1] = { appStartupType };
-                Il2CppObject* arrPrefabs = s_runtime_invoke(m_FindObjectsOfType, nullptr, argsFOT, &exees);
-                if (exees || !arrPrefabs) 
-                {
-                    return;
-                }
-
-                Il2CppArray* arrp = (Il2CppArray*)arrPrefabs;
-
-                Il2CppObject** elemss = (Il2CppObject**)((char*)arrp + sizeof(Il2CppArray));
-
-                for (il2cpp_array_size_t i = 0; i < arrp->max_length; ++i) 
-                {
-                    Il2CppObject* nosg = elemss[i];
-                    if (!nosg) continue;
-
-                    Il2CppString* _gameDataURL = CreateMonoString("https://ziprewriterforac.onrender.com/game-data-prod.zip");
-                    FieldInfo* f_gameDataURL = s_class_get_field_from_name(AppStartup, "_gameDataURL");
-
-                    //s_field_set_value(nosg, f_gameDataURL, _gameDataURL);
-                }
-
     
     if (GameObject && s_get_method_from_name) 
     {
@@ -4608,9 +4584,24 @@ void initStuff(MemoryFileInfo framework)
 
         if (auto m = s_get_method_from_name(GameObject, "AddComponent", 1))
             if (m->methodPointer) GO_AddComponent = (t_GO_AddComponent)STRIP_FP(m->methodPointer);
+
+        if (auto m = s_get_method_from_name(GameObject, "Find", 1))
+            if (m->methodPointer) GO_Find = (t_GO_Find)STRIP_FP(m->methodPointer);
     }
     KITTY_LOGI("Unity resolver: GameObject=%p SetActive=%p GetComponent=%p GetComponentInChildren=%p",
                GameObject, (void*)GO_SetActive, (void*)GO_GetComponent, (void*)GO_GetComponentInChildren);
+
+
+
+    Il2CppObject* ffind = GO_Find(CreateMonoString("App"));
+    Il2CppObject* compone = GO_GetComponent(ffind, appStartupType);
+
+    Il2CppString* _gameDataURL = CreateMonoString("https://ziprewriterforac.onrender.com/game-data-prod.zip");
+    FieldInfo* f_gameDataURL = s_class_get_field_from_name(AppStartup, "_gameDataURL");
+
+    s_field_set_value(compone, f_gameDataURL, _gameDataURL);
+
+
 
     if (PrefabGenerator && s_get_method_from_name) {
         if (auto m = s_get_method_from_name(PrefabGenerator, "SpawnItem", 4))
