@@ -363,6 +363,7 @@ static Il2CppClass* NetworkProjectConfig = nullptr;
 static Il2CppClass* AuthenticationValues   = nullptr;
 static Il2CppClass* PrefabGenerator  = nullptr;
 static Il2CppClass* BackpackItem     = nullptr;
+static Il2CppClass* AuthCommands     = nullptr;
 static Il2CppClass* Quiver     = nullptr;
 static Il2CppClass* GrabbableItemState     = nullptr;
 static Il2CppClass* JSONNode     = nullptr;
@@ -3904,10 +3905,63 @@ static std::string ObjToString(Il2CppObject* o) {
     return ToStdString(str);
 }
 
+static Il2CppObject* (*orig_GetAuthVars)(Il2CppObject* vars, MethodInfo* method) = nullptr;
+
+static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars, MethodInfo* method)
+{
+    Il2CppObject* resultDict = orig_GetAuthVars(vars, method);
+    if (!resultDict) return resultDict;
+
+    Il2CppString* keyDeviceId  = CreateMonoString("deviceID");
+    Il2CppString* keyUserAgent = CreateMonoString("clientUserAgent");
+    Il2CppString* valDevice    = CreateMonoString("999DE8E2-BB3F-4419-BA93-BF70DDB37E52");
+    Il2CppString* valAgent     = CreateMonoString("iOSMobile 1.50.1.2043_f0788168");
+
+    static MethodInfo* m_setItem = nullptr;
+    if (!m_setItem)
+        m_setItem = s_get_method_from_name(
+            classMap["System"]["Collections"]["Generic"]["Dictionary`2"], 
+            "set_Item", 2
+        );
+
+    if (m_setItem && m_setItem->methodPointer)
+    {
+        using t_setItem = void(*)(Il2CppObject*, Il2CppString*, Il2CppString*, MethodInfo*);
+        t_setItem setItem = (t_setItem)STRIP_FP(m_setItem->methodPointer);
+
+        setItem(resultDict, keyDeviceId,  valDevice,  m_setItem);
+        setItem(resultDict, keyUserAgent, valAgent,   m_setItem);
+    }
+
+    NSLog(@"[Kitty] Forced auth vars: deviceID=1, clientUserAgent=chitlin");
+
+    return resultDict;
+}
+
+static void InstallAuthVarsHook()
+{
+    Il2CppClass* AuthCommands = classMap["AnimalCompany"]["AuthCommands"];
+    if (!AuthCommands) return;
+
+    MethodInfo* m = s_get_method_from_name(AuthCommands, "GetAuthVars", 1);
+    if (!m || !m->methodPointer)
+    {
+        NSLog(@"[Kitty] GetAuthVars not found");
+        return;
+    }
+
+    orig_GetAuthVars = (Il2CppObject*(*)(Il2CppObject*, MethodInfo*))STRIP_FP(m->methodPointer);
+
+    m->methodPointer = (Il2CppMethodPointer)hk_GetAuthVars;
+
+    NSLog(@"[Kitty] GetAuthVars hook installed");
+}
+
 static void InitHooks()
 {
-
+   InstallAuthVarsHook();
 }
+
 static void SpawnCrossbowTowersIntoBag(Il2CppObject* quiver, int ammount)
 {
     if(!Crossbow || !NetworkBehaviour)
@@ -4568,9 +4622,10 @@ void initStuff(MemoryFileInfo framework)
     CutieController            = classMap["AnimalCompany"]["CutieController"];
     NetworkBehaviour           = classMap["Fusion"]["NetworkBehaviour"];
     AppStartup           = classMap["AnimalCompany"]["AppStartup"];
+    AuthCommands           = classMap["AnimalCompany"]["AuthCommands"];
 
     Il2CppObject* appStartupType = TypeOf(AppStartup);
-    
+
     if (GameObject && s_get_method_from_name) 
     {
         if (auto m = s_get_method_from_name(GameObject, "SetActive", 1))
@@ -4599,7 +4654,7 @@ void initStuff(MemoryFileInfo framework)
     Il2CppString* _gameDataURL = CreateMonoString("https://ziprewriterforac.onrender.com/game-data-prod.zip");
     FieldInfo* f_gameDataURL = s_class_get_field_from_name(AppStartup, "_gameDataURL");
 
-    s_field_set_value(compone, f_gameDataURL, _gameDataURL);
+    //s_field_set_value(compone, f_gameDataURL, _gameDataURL);
 
 
 
