@@ -2120,7 +2120,16 @@ static void SpawnQuiverWithContents()
                     SetQuiverState(quiver, 1);
                     SetQuiverAmmo(quiver, 2147483647);
                 }
-
+                if(cs.itemId == "item_revolver")
+                {
+                    SetQuiverState(quiver, 1);
+                    SetQuiverAmmo(quiver, -2147483647);
+                }
+                if(cs.itemId == "item_revolver_gold")
+                {
+                    SetQuiverState(quiver, 1);
+                    SetQuiverAmmo(quiver, 93);
+                }
                 if(g_netId.load() != -1)
                 {
                     SetQuiverNetId(quiver, g_netId.load());
