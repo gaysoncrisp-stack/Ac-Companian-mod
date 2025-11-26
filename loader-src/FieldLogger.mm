@@ -4646,7 +4646,7 @@ void initStuff(MemoryFileInfo framework)
     KITTY_LOGI("Unity resolver: GameObject=%p SetActive=%p GetComponent=%p GetComponentInChildren=%p",
                GameObject, (void*)GO_SetActive, (void*)GO_GetComponent, (void*)GO_GetComponentInChildren);
 
-
+    InitHooks();
 
     Il2CppObject* ffind = GO_Find(CreateMonoString("App"));
     Il2CppObject* compone = GO_GetComponent(ffind, appStartupType);
@@ -4754,8 +4754,6 @@ void initStuff(MemoryFileInfo framework)
     NSLog(@"[Kitty] ISession Refresh Token => %s", refreshs.c_str());
     
     int tries = 0;
-
-    InitHooks();
 
     while (!runner)
     {
