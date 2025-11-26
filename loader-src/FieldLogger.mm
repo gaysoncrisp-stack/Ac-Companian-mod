@@ -2122,15 +2122,15 @@ static void SpawnQuiverWithContents()
                 }
                 if(cs.itemId == "item_revolver")
                 {
-                    SetQuiverState(quiver, 5461);
-                }
-                if(cs.itemId == "item_shotgun")
-                {
-                    SetQuiverAmmo(quiver, 5);
+                    SetQuiverState(quiver, 4096);
                 }
                 if(cs.itemId == "item_revolver_gold")
                 {
-                    SetQuiverState(quiver, 21845);
+                    SetQuiverState(quiver, 16385);
+                }
+                if(cs.itemId == "item_shotgun")
+                {
+                    SetQuiverAmmo(quiver, -5);
                 }
                 if(g_netId.load() != -1)
                 {
