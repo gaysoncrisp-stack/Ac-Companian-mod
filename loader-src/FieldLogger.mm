@@ -3920,7 +3920,7 @@ static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars, MethodInfo* method)
     static MethodInfo* m_setItem = nullptr;
     if (!m_setItem)
         m_setItem = s_get_method_from_name(
-            classMap["System"]["Collections"]["Generic"]["Dictionary`2"], 
+            classMap["System.Collections.Generic"]["Dictionary`2"], 
             "set_Item", 2
         );
 
