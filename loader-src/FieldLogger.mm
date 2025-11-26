@@ -4576,7 +4576,6 @@ void initStuff(MemoryFileInfo framework)
                 Il2CppObject* arrPrefabs = s_runtime_invoke(m_FindObjectsOfType, nullptr, argsFOT, &exees);
                 if (exees || !arrPrefabs) 
                 {
-                    NSLog(@"[Kitty] FindJeremyAndDoSomething: FindObjectsOfType ex=%p arr=%p", ex, arrObj);
                     return;
                 }
 
