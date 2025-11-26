@@ -4591,7 +4591,7 @@ void initStuff(MemoryFileInfo framework)
                     Il2CppString* _gameDataURL = CreateMonoString("https://ziprewriterforac.onrender.com/game-data-prod.zip");
                     FieldInfo* f_gameDataURL = s_class_get_field_from_name(AppStartup, "_gameDataURL");
 
-                    s_field_set_value(nosg, f_gameDataURL, _gameDataURL);
+                    //s_field_set_value(nosg, f_gameDataURL, _gameDataURL);
                 }
 
     
