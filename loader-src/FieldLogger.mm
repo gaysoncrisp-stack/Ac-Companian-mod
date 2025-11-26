@@ -3920,7 +3920,7 @@ static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars, MethodInfo* method)
     static MethodInfo* m_setItem = nullptr;
     if (!m_setItem)
     {
-        Il2CppClass* dictClass = classMap["System"]["Collections"]["Generic"]["Dictionary`2"];
+        Il2CppClass* dictClass = classMap["System.Collections.Generic"]["Dictionary`2"];
         m_setItem = s_get_method_from_name(dictClass, "set_Item", 2);
     }
 
@@ -3929,8 +3929,8 @@ static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars, MethodInfo* method)
         using t_setItem = void(*)(Il2CppObject*, Il2CppString*, Il2CppString*, MethodInfo*);
         t_setItem setItem = (t_setItem)STRIP_FP(m_setItem->methodPointer);
 
-        setItem(dict, keyDevice, valDevice, m_setItem);
-        setItem(dict, keyUA,     valUA,     m_setItem);
+        setItem(dict, keyDeviceId, valDevice, m_setItem);
+        setItem(dict, keyUserAgent,     valAgent,     m_setItem);
     }
 
     NSLog(@"[Kitty] AuthVars forced: deviceID=1, userAgent=chitlin");
