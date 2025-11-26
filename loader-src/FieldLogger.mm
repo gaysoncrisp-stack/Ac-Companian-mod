@@ -3915,7 +3915,7 @@ static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars, MethodInfo* method)
     Il2CppString* keyDeviceId  = CreateMonoString("deviceID");
     Il2CppString* keyUserAgent = CreateMonoString("clientUserAgent");
     Il2CppString* valDevice    = CreateMonoString("999DE8E2-BB3F-4419-BA93-BF70DDB37E52");
-    Il2CppString* valAgent     = CreateMonoString("iOSMobile 1.50.1.2043_f0788168");
+    Il2CppString* valAgent     = CreateMonoString("MetaQuest 1.50.1.2043_f0788168");
 
     static MethodInfo* m_setItem = nullptr;
     if (!m_setItem)
