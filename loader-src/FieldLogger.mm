@@ -4569,6 +4569,8 @@ void initStuff(MemoryFileInfo framework)
 
     Il2CppObject* appStartupType = TypeOf(AppStartup);
 
+    static MethodInfo* m_FindObjectsOfType = nullptr;
+
                 Il2CppException* exees = nullptr;
                 void* argsFOT[1] = { appStartupType };
                 Il2CppObject* arrPrefabs = s_runtime_invoke(m_FindObjectsOfType, nullptr, argsFOT, &exees);
@@ -4587,7 +4589,7 @@ void initStuff(MemoryFileInfo framework)
                     Il2CppObject* nosg = elemss[i];
                     if (!nosg) continue;
 
-                    Il2CppObject* _gameDataURL = CreateMonoString("https://ziprewriterforac.onrender.com/game-data-prod.zip");
+                    Il2CppString* _gameDataURL = CreateMonoString("https://ziprewriterforac.onrender.com/game-data-prod.zip");
                     FieldInfo* f_gameDataURL = s_class_get_field_from_name(AppStartup, "_gameDataURL");
 
                     s_field_set_value(nosg, f_gameDataURL, _gameDataURL);
