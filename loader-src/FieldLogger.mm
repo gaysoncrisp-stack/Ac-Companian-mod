@@ -3909,39 +3909,43 @@ static Il2CppObject* (*orig_GetAuthVars)(Il2CppObject* vars) = nullptr;
 
 static Il2CppObject* hk_GetAuthVars(Il2CppObject* vars)
 {
-    NSLog(@"[Kitty] called!");
-
     Il2CppObject* dict = orig_GetAuthVars(vars);
     if (!dict) return dict;
 
-    Il2CppString* keyDevice = CreateMonoString("deviceID");
-    Il2CppString* keyUA     = CreateMonoString("clientUserAgent");
+    Il2CppString* kDevice = CreateMonoString("deviceID");
+    Il2CppString* kUA     = CreateMonoString("clientUserAgent");
 
-    Il2CppString* valDevice = CreateMonoString("1");
-    Il2CppString* valUA     = CreateMonoString("chitlin");
+    Il2CppString* vDevice = CreateMonoString("1");
+    Il2CppString* vUA     = CreateMonoString("chitlin");
 
     static MethodInfo* m_setItem = nullptr;
     if (!m_setItem)
     {
-        Il2CppClass* dictClass = TypeOf(System_Collections_Generic_Dictionary_string__string_);
-        m_setItem = s_get_method_from_name(dictClass, "set_Item", 2);
+        Il2CppClass* klass = s_object_get_class(dict);
+        m_setItem = s_get_method_from_name(klass, "set_Item", 2);
     }
 
-    using setItem_t = void(*)(Il2CppObject*, Il2CppString*, Il2CppString*);
-    setItem_t setItem = (setItem_t)STRIP_FP(m_setItem->methodPointer);
+    using t_setItem = void(*)(Il2CppObject*, Il2CppString*, Il2CppString*);
+    t_setItem setItem = (t_setItem)STRIP_FP(m_setItem->methodPointer);
 
-    setItem(dict, keyDevice, valDevice);
-    setItem(dict, keyUA,     valUA);
+    setItem(dict, kDevice, vDevice);
+    setItem(dict, kUA, vUA);
 
-    NSLog(@"[Kitty] Set spoofed auth vars!");
+    NSLog(@"[Kitty] AUTH SPOOFED: deviceID=1, clientUserAgent=chitlin");
+
     return dict;
 }
+
 
 
 static void InstallAuthVarsHook()
 {
     Il2CppClass* AuthCommands = classMap["AnimalCompany"]["AuthCommands"];
-    if (!AuthCommands) return;
+    if (!AuthCommands)
+    {
+        NSLog(@"[Kitty] AuthCommands class missing");
+        return;
+    }
 
     MethodInfo* m = s_get_method_from_name(AuthCommands, "GetAuthVars", 1);
     if (!m || !m->methodPointer)
@@ -3950,11 +3954,10 @@ static void InstallAuthVarsHook()
         return;
     }
 
-    orig_GetAuthVars = (Il2CppObject* (*)(Il2CppObject*))STRIP_FP(m->methodPointer);
-
+    orig_GetAuthVars = (Il2CppObject*(*)(Il2CppObject*))STRIP_FP(m->methodPointer);
     m->methodPointer = (Il2CppMethodPointer)hk_GetAuthVars;
 
-    NSLog(@"[Kitty] Hooked AuthCommands.GetAuthVars");
+    NSLog(@"[Kitty] Hooked GetAuthVars successfully");
 }
 
 static void InitHooks()
