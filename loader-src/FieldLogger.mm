@@ -2122,11 +2122,11 @@ static void SpawnQuiverWithContents()
                 }
                 if(cs.itemId == "item_revolver")
                 {
-                    SetQuiverState(quiver, 4096);
+                    SetQuiverState(quiver, 31);
                 }
                 if(cs.itemId == "item_revolver_gold")
                 {
-                    SetQuiverState(quiver, 16385);
+                    SetQuiverState(quiver, 255);
                 }
                 if(cs.itemId == "item_shotgun")
                 {
