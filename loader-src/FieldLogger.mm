@@ -4528,7 +4528,7 @@ static Il2CppObject* CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-    MethodInfo* m_set_id = s_get_method_from_name(GameplayItemState, "set_id", 0);
+    MethodInfo* m_set_id = s_get_method_from_name(GameplayItemState, "set_id", 1);
     using t_set_id = void(*)(Il2CppObject*, Il2CppString*);
     auto set_id = (t_set_id)STRIP_FP(m_set_id->methodPointer);
     
