@@ -652,6 +652,7 @@ struct Nullable {
 
 static Il2CppClass* Revolver;
 static Il2CppClass* Shotgun;
+static Il2CppClass* GameplayItemState;
 
 struct NetworkId { uint32_t Raw; };
 
@@ -4495,11 +4496,12 @@ static void SpawnGrenadeLauncherWithContents()
 }
 
 
-static void CrossbowModded()
+static Il2CppObject* CrossbowModded()
 {
-    if(!Crossbow || !NetworkBehaviour)
+    if(!Crossbow || !GameplayItemState)
     {
         Crossbow = classMap["AnimalCompany"]["Crossbow"];
+        GameplayItemState = classMap["AnimalCompany"]["GameplayItemState"];
     }
 
     Il2CppObject* grabbableItemType = TypeOf(GrabbableItem);
@@ -4507,8 +4509,12 @@ static void CrossbowModded()
     Il2CppObject* crossbowType = TypeOf(Crossbow);
     Il2CppObject* netBehaviourType = TypeOf(NetworkBehaviour);
 
-    Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
-    Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, grabbableItemType);
+    Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_crossbow"), GetCamPosition(), 0, 0, 0);
+    Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, crossbowType);
+
+    Il2CppObject* goStick = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
+    Il2CppObject* stick = GO_GetComponentInChildren(goStick, grabbableType);
+    Il2CppObject* stickitemtype = GO_GetComponentInChildren(goStick, grabbableItemType);
 
     Il2CppObject* _attachAnchor = nullptr;
     FieldInfo* f_attachAnchor = s_class_get_field_from_name(Crossbow, "_attachAnchor");
@@ -4524,15 +4530,21 @@ static void CrossbowModded()
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
-    MethodInfo* m_RPC_SetAdditionalSellValue = s_get_method_from_name(GrabbableItem, "RPC_SetAdditionalSellValue", 1);
-    if (!m_RPC_SetAdditionalSellValue || !m_RPC_SetAdditionalSellValue->methodPointer) return;
-    using t_RPC_SetAdditionalSellValue = void(*)(Il2CppObject*, int);
-    auto RPC_SetAdditionalSellValue = (t_RPC_SetAdditionalSellValue)STRIP_FP(m_RPC_SetAdditionalSellValue->methodPointer);
+    MethodInfo* m_set_id = s_get_method_from_name(GameplayItemState, "set_id", 0);
+    if (!m_set_id || !m_set_id->methodPointer) return;
+    using t_set_id = void(*)(Il2CppObject*, Il2CppString*);
+    auto set_id = (t_set_id)STRIP_FP(m_set_id->methodPointer);
+    
+    Il2CppObject* _itemData = nullptr;
+    FieldInfo* f_itemData = s_class_get_field_from_name(GrabbableItem, "_itemData");
+    s_field_get_value(stickitemtype, f_itemData, &_itemData);
 
-    RPC_SetAdditionalSellValue(crossb, 9999999);
+    set_id(_itemData, CreateMonoString("item_apple"));
 
-    //NetworkBehaviourId netBId = get_Id();
-    //TryGrabObject(_attachAnchor, netBId, false, true, false);
+    NetworkBehaviourId netBId = get_Id(stick);
+    TryGrabObject(_attachAnchor, netBId, false, true, false);
+
+    return goCrossbow;
 }
 
 static void PatchAppState()
