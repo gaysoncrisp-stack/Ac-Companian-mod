@@ -4735,8 +4735,8 @@ static void CustomTick()
         //CrossbowChildren();
         if(!CrossbowsDone)
         {
-            CrossbowModded();
-            //PatchAppState();
+            ModdedItem();
+            PatchAppState();
             CrossbowsDone = true;
         }
     }
