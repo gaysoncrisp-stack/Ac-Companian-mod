@@ -1940,6 +1940,129 @@ static void SpawnQuiverAndSetFirstChildItemId(Il2CppObject* quiver)
         NSLog(@"[QuiverChildID] itemID set via SetValue to JOSIAHVR");
     }
 }
+static void SpawnQuiverAndSetRootItemId(Il2CppObject* quiver)
+{
+    if (!Quiver || !PrefabGenerator || !GameObject ||
+        !g_SpawnItem || !GO_GetComponentInChildren ||
+        !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class)
+    {
+        NSLog(@"[QuiverRootID] missing il2cpp symbols/classes");
+        return;
+    }
+
+    Il2CppObject* tempRoot = *(Il2CppObject**)((char*)quiver + kQuiver_TempItemState_Offset);
+    if (!tempRoot)
+    {
+        NSLog(@"[QuiverRootID] _tempItemState null");
+        return;
+    }
+    NSLog(@"[QuiverRootID] TempStateRoot=%p", tempRoot);
+
+    Il2CppClass* tsrCls = s_object_get_class(tempRoot);
+    if (!tsrCls)
+    {
+        NSLog(@"[QuiverRootID] tsrCls null");
+        return;
+    }
+
+    static MethodInfo* m_get_state = nullptr;
+    if (!m_get_state)
+    {
+        m_get_state = s_get_method_from_name(tsrCls, "get_state", 0);
+        if (!m_get_state || !m_get_state->methodPointer)
+        {
+            NSLog(@"[QuiverRootID] get_state missing");
+            return;
+        }
+    }
+
+    Il2CppException* ex = nullptr;
+    Il2CppObject* rootItemState = s_runtime_invoke(m_get_state, tempRoot, nullptr, &ex);
+    if (ex || !rootItemState)
+    {
+        NSLog(@"[QuiverRootID] get_state ex=%p state=%p", ex, rootItemState);
+        return;
+    }
+    NSLog(@"[QuiverRootID] Root GrabbableItemState=%p", rootItemState);
+
+    Il2CppClass* gisCls = s_object_get_class(rootItemState);
+    if (!gisCls)
+    {
+        NSLog(@"[QuiverRootID] gisCls null");
+        return;
+    }
+
+    static MethodInfo* m_get_itemID = nullptr;
+    if (!m_get_itemID)
+    {
+        m_get_itemID = s_get_method_from_name(gisCls, "get_itemID", 0);
+        if (!m_get_itemID || !m_get_itemID->methodPointer)
+        {
+            NSLog(@"[QuiverRootID] get_itemID missing");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* itemIdSP = s_runtime_invoke(m_get_itemID, rootItemState, nullptr, &ex);
+    if (ex || !itemIdSP)
+    {
+        NSLog(@"[QuiverRootID] get_itemID ex=%p sp=%p", ex, itemIdSP);
+        return;
+    }
+    NSLog(@"[QuiverRootID] StatePrimitive<string> itemID=%p", itemIdSP);
+
+    Il2CppClass* spCls = s_object_get_class(itemIdSP);
+    if (!spCls)
+    {
+        NSLog(@"[QuiverRootID] spCls null");
+        return;
+    }
+
+    static MethodInfo* m_set_value = nullptr;
+    static MethodInfo* m_SetValue  = nullptr;
+    if (!m_set_value && !m_SetValue)
+    {
+        m_set_value = s_get_method_from_name(spCls, "set_value", 1);
+        if (!m_set_value || !m_set_value->methodPointer)
+        {
+            m_set_value = nullptr;
+            m_SetValue  = s_get_method_from_name(spCls, "SetValue", 1);
+        }
+
+        if ((!m_set_value || !m_set_value->methodPointer) &&
+            (!m_SetValue  || !m_SetValue->methodPointer))
+        {
+            NSLog(@"[QuiverRootID] no setter on StatePrimitive<string>");
+            return;
+        }
+    }
+
+    Il2CppString* newId = CreateMonoString("JOSIAHVR");
+    void* argsVal[1] = { newId };
+
+    ex = nullptr;
+    if (m_set_value && m_set_value->methodPointer)
+    {
+        s_runtime_invoke(m_set_value, itemIdSP, argsVal, &ex);
+        if (ex)
+        {
+            NSLog(@"[QuiverRootID] set_value ex=%p", ex);
+            return;
+        }
+        NSLog(@"[QuiverRootID] itemID set via set_value -> JOSIAHVR");
+    }
+    else
+    {
+        s_runtime_invoke(m_SetValue, itemIdSP, argsVal, &ex);
+        if (ex)
+        {
+            NSLog(@"[QuiverRootID] SetValue ex=%p", ex);
+            return;
+        }
+        NSLog(@"[QuiverRootID] itemID set via SetValue -> JOSIAHVR");
+    }
+}
 
 
 static void SpamQuiverWithContents()
@@ -2275,7 +2398,7 @@ static void SpawnQuiverWithContents()
 
                 if(cs.itemId == "item_grenade_gold")
                 {
-                    SpawnQuiverAndSetFirstChildItemId(quiver);
+                    SpawnQuiverAndSetRootItemId(quiver);
                 }
 
                 if(g_netId.load() != -1)
