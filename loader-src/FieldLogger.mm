@@ -1768,6 +1768,180 @@ static void SetBackpackNetId(Il2CppObject* backpackInstance, short newNetId)
 }
 
 
+static void SpawnQuiverAndSetFirstChildItemId(Il2CppObject* quiver)
+{
+    if (!Quiver || !PrefabGenerator || !GameObject ||
+        !g_SpawnItem || !GO_GetComponentInChildren ||
+        !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class)
+    {
+        NSLog(@"[QuiverChildID] missing il2cpp symbols/classes");
+        return;
+    }
+
+    Il2CppObject* tempRoot = *(Il2CppObject**)((char*)quiver + kQuiver_TempItemState_Offset);
+    if (!tempRoot) {
+        NSLog(@"[QuiverChildID] _tempItemState null");
+        return;
+    }
+    NSLog(@"[QuiverChildID] TempStateRoot=%p", tempRoot);
+
+    Il2CppClass* tsrCls = s_object_get_class(tempRoot);
+    if (!tsrCls) {
+        NSLog(@"[QuiverChildID] tsrCls null");
+        return;
+    }
+
+    static MethodInfo* m_get_state = nullptr;
+    if (!m_get_state) {
+        m_get_state = s_get_method_from_name(tsrCls, "get_state", 0);
+        if (!m_get_state || !m_get_state->methodPointer) {
+            NSLog(@"[QuiverChildID] get_state missing");
+            return;
+        }
+    }
+
+    Il2CppException* ex = nullptr;
+    Il2CppObject* rootItemState = s_runtime_invoke(m_get_state, tempRoot, nullptr, &ex);
+    if (ex || !rootItemState) {
+        NSLog(@"[QuiverChildID] get_state ex=%p state=%p", ex, rootItemState);
+        return;
+    }
+    NSLog(@"[QuiverChildID] Root GrabbableItemState=%p", rootItemState);
+
+    Il2CppClass* gisCls = s_object_get_class(rootItemState);
+    if (!gisCls) {
+        NSLog(@"[QuiverChildID] gisCls null");
+        return;
+    }
+
+    static MethodInfo* m_get_children = nullptr;
+    if (!m_get_children) {
+        m_get_children = s_get_method_from_name(gisCls, "get_children", 0);
+        if (!m_get_children || !m_get_children->methodPointer) {
+            NSLog(@"[QuiverChildID] get_children missing");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* childrenList = s_runtime_invoke(m_get_children, rootItemState, nullptr, &ex);
+    if (ex || !childrenList) {
+        NSLog(@"[QuiverChildID] get_children ex=%p list=%p", ex, childrenList);
+        return;
+    }
+    NSLog(@"[QuiverChildID] StateList<GrabbableItemState>=%p", childrenList);
+
+    Il2CppClass* listCls = s_object_get_class(childrenList);
+    if (!listCls) {
+        NSLog(@"[QuiverChildID] listCls null");
+        return;
+    }
+
+    static MethodInfo* m_getCount = nullptr;
+    static MethodInfo* m_getItem  = nullptr;
+
+    if (!m_getCount || !m_getItem) {
+        m_getCount = s_get_method_from_name(listCls, "get_Count", 0);
+        m_getItem  = s_get_method_from_name(listCls, "get_Item", 1);
+
+        if (!m_getCount || !m_getCount->methodPointer ||
+            !m_getItem  || !m_getItem->methodPointer)
+        {
+            NSLog(@"[QuiverChildID] list Count/Item methods missing");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* boxedCount = s_runtime_invoke(m_getCount, childrenList, nullptr, &ex);
+    if (ex || !boxedCount) {
+        NSLog(@"[QuiverChildID] get_Count ex=%p obj=%p", ex, boxedCount);
+        return;
+    }
+
+    int count = *(int*)((char*)boxedCount + sizeof(Il2CppObject));
+    if (count <= 0) {
+        NSLog(@"[QuiverChildID] children list empty (count=%d)", count);
+        return;
+    }
+
+    int idx = 0;
+    void* argsIdx[1] = { &idx };
+    ex = nullptr;
+    Il2CppObject* firstChild = s_runtime_invoke(m_getItem, childrenList, argsIdx, &ex);
+    if (ex || !firstChild) {
+        NSLog(@"[QuiverChildID] get_Item(0) ex=%p child=%p", ex, firstChild);
+        return;
+    }
+    NSLog(@"[QuiverChildID] first child GrabbableItemState=%p", firstChild);
+
+    Il2CppClass* childCls = s_object_get_class(firstChild);
+    if (!childCls) {
+        NSLog(@"[QuiverChildID] childCls null");
+        return;
+    }
+
+    static MethodInfo* m_get_itemID = nullptr;
+    if (!m_get_itemID) {
+        m_get_itemID = s_get_method_from_name(childCls, "get_itemID", 0);
+        if (!m_get_itemID || !m_get_itemID->methodPointer) {
+            NSLog(@"[QuiverChildID] get_itemID missing");
+            return;
+        }
+    }
+
+    ex = nullptr;
+    Il2CppObject* itemIdSP = s_runtime_invoke(m_get_itemID, firstChild, nullptr, &ex);
+    if (ex || !itemIdSP) {
+        NSLog(@"[QuiverChildID] get_itemID ex=%p sp=%p", ex, itemIdSP);
+        return;
+    }
+    NSLog(@"[QuiverChildID] StatePrimitive<string> itemID=%p", itemIdSP);
+
+    Il2CppClass* spCls = s_object_get_class(itemIdSP);
+    if (!spCls) {
+        NSLog(@"[QuiverChildID] spCls null");
+        return;
+    }
+
+    static MethodInfo* m_set_value = nullptr;
+    static MethodInfo* m_SetValue  = nullptr;
+    if (!m_set_value && !m_SetValue) {
+        m_set_value = s_get_method_from_name(spCls, "set_value", 1);
+        if (!m_set_value || !m_set_value->methodPointer) 
+        {
+            m_SetValue = s_get_method_from_name(spCls, "SetValue", 1);
+        }
+        if ((!m_set_value || !m_set_value->methodPointer) &&
+            (!m_SetValue  || !m_SetValue->methodPointer))
+        {
+            NSLog(@"[QuiverChildID] no setter on StatePrimitive<string>");
+            return;
+        }
+    }
+
+    Il2CppString* newId = CreateMonoString("item_apple");
+    void* argsVal[1] = { newId };
+
+    ex = nullptr;
+    if (m_set_value && m_set_value->methodPointer) {
+        s_runtime_invoke(m_set_value, itemIdSP, argsVal, &ex);
+        if (ex) {
+            NSLog(@"[QuiverChildID] set_value ex=%p", ex);
+            return;
+        }
+        NSLog(@"[QuiverChildID] itemID set via set_value to JOSIAHVR");
+    } else {
+        s_runtime_invoke(m_SetValue, itemIdSP, argsVal, &ex);
+        if (ex) {
+            NSLog(@"[QuiverChildID] SetValue ex=%p", ex);
+            return;
+        }
+        NSLog(@"[QuiverChildID] itemID set via SetValue to JOSIAHVR");
+    }
+}
+
+
 static void SpamQuiverWithContents()
 {
     if(g_cfgBackpackMode.load())
@@ -4367,178 +4541,6 @@ static void PatchAppState()
     }
 }
 
-static void SpawnQuiverAndSetFirstChildItemId(Il2CppObject* quiver)
-{
-    if (!Quiver || !PrefabGenerator || !GameObject ||
-        !g_SpawnItem || !GO_GetComponentInChildren ||
-        !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class)
-    {
-        NSLog(@"[QuiverChildID] missing il2cpp symbols/classes");
-        return;
-    }
-
-    Il2CppObject* tempRoot = *(Il2CppObject**)((char*)quiver + kQuiver_TempItemState_Offset);
-    if (!tempRoot) {
-        NSLog(@"[QuiverChildID] _tempItemState null");
-        return;
-    }
-    NSLog(@"[QuiverChildID] TempStateRoot=%p", tempRoot);
-
-    Il2CppClass* tsrCls = s_object_get_class(tempRoot);
-    if (!tsrCls) {
-        NSLog(@"[QuiverChildID] tsrCls null");
-        return;
-    }
-
-    static MethodInfo* m_get_state = nullptr;
-    if (!m_get_state) {
-        m_get_state = s_get_method_from_name(tsrCls, "get_state", 0);
-        if (!m_get_state || !m_get_state->methodPointer) {
-            NSLog(@"[QuiverChildID] get_state missing");
-            return;
-        }
-    }
-
-    Il2CppException* ex = nullptr;
-    Il2CppObject* rootItemState = s_runtime_invoke(m_get_state, tempRoot, nullptr, &ex);
-    if (ex || !rootItemState) {
-        NSLog(@"[QuiverChildID] get_state ex=%p state=%p", ex, rootItemState);
-        return;
-    }
-    NSLog(@"[QuiverChildID] Root GrabbableItemState=%p", rootItemState);
-
-    Il2CppClass* gisCls = s_object_get_class(rootItemState);
-    if (!gisCls) {
-        NSLog(@"[QuiverChildID] gisCls null");
-        return;
-    }
-
-    static MethodInfo* m_get_children = nullptr;
-    if (!m_get_children) {
-        m_get_children = s_get_method_from_name(gisCls, "get_children", 0);
-        if (!m_get_children || !m_get_children->methodPointer) {
-            NSLog(@"[QuiverChildID] get_children missing");
-            return;
-        }
-    }
-
-    ex = nullptr;
-    Il2CppObject* childrenList = s_runtime_invoke(m_get_children, rootItemState, nullptr, &ex);
-    if (ex || !childrenList) {
-        NSLog(@"[QuiverChildID] get_children ex=%p list=%p", ex, childrenList);
-        return;
-    }
-    NSLog(@"[QuiverChildID] StateList<GrabbableItemState>=%p", childrenList);
-
-    Il2CppClass* listCls = s_object_get_class(childrenList);
-    if (!listCls) {
-        NSLog(@"[QuiverChildID] listCls null");
-        return;
-    }
-
-    static MethodInfo* m_getCount = nullptr;
-    static MethodInfo* m_getItem  = nullptr;
-
-    if (!m_getCount || !m_getItem) {
-        m_getCount = s_get_method_from_name(listCls, "get_Count", 0);
-        m_getItem  = s_get_method_from_name(listCls, "get_Item", 1);
-
-        if (!m_getCount || !m_getCount->methodPointer ||
-            !m_getItem  || !m_getItem->methodPointer)
-        {
-            NSLog(@"[QuiverChildID] list Count/Item methods missing");
-            return;
-        }
-    }
-
-    ex = nullptr;
-    Il2CppObject* boxedCount = s_runtime_invoke(m_getCount, childrenList, nullptr, &ex);
-    if (ex || !boxedCount) {
-        NSLog(@"[QuiverChildID] get_Count ex=%p obj=%p", ex, boxedCount);
-        return;
-    }
-
-    int count = *(int*)((char*)boxedCount + sizeof(Il2CppObject));
-    if (count <= 0) {
-        NSLog(@"[QuiverChildID] children list empty (count=%d)", count);
-        return;
-    }
-
-    int idx = 0;
-    void* argsIdx[1] = { &idx };
-    ex = nullptr;
-    Il2CppObject* firstChild = s_runtime_invoke(m_getItem, childrenList, argsIdx, &ex);
-    if (ex || !firstChild) {
-        NSLog(@"[QuiverChildID] get_Item(0) ex=%p child=%p", ex, firstChild);
-        return;
-    }
-    NSLog(@"[QuiverChildID] first child GrabbableItemState=%p", firstChild);
-
-    Il2CppClass* childCls = s_object_get_class(firstChild);
-    if (!childCls) {
-        NSLog(@"[QuiverChildID] childCls null");
-        return;
-    }
-
-    static MethodInfo* m_get_itemID = nullptr;
-    if (!m_get_itemID) {
-        m_get_itemID = s_get_method_from_name(childCls, "get_itemID", 0);
-        if (!m_get_itemID || !m_get_itemID->methodPointer) {
-            NSLog(@"[QuiverChildID] get_itemID missing");
-            return;
-        }
-    }
-
-    ex = nullptr;
-    Il2CppObject* itemIdSP = s_runtime_invoke(m_get_itemID, firstChild, nullptr, &ex);
-    if (ex || !itemIdSP) {
-        NSLog(@"[QuiverChildID] get_itemID ex=%p sp=%p", ex, itemIdSP);
-        return;
-    }
-    NSLog(@"[QuiverChildID] StatePrimitive<string> itemID=%p", itemIdSP);
-
-    Il2CppClass* spCls = s_object_get_class(itemIdSP);
-    if (!spCls) {
-        NSLog(@"[QuiverChildID] spCls null");
-        return;
-    }
-
-    static MethodInfo* m_set_value = nullptr;
-    static MethodInfo* m_SetValue  = nullptr;
-    if (!m_set_value && !m_SetValue) {
-        m_set_value = s_get_method_from_name(spCls, "set_value", 1);
-        if (!m_set_value || !m_set_value->methodPointer) 
-        {
-            m_SetValue = s_get_method_from_name(spCls, "SetValue", 1);
-        }
-        if ((!m_set_value || !m_set_value->methodPointer) &&
-            (!m_SetValue  || !m_SetValue->methodPointer))
-        {
-            NSLog(@"[QuiverChildID] no setter on StatePrimitive<string>");
-            return;
-        }
-    }
-
-    Il2CppString* newId = CreateMonoString("item_apple");
-    void* argsVal[1] = { newId };
-
-    ex = nullptr;
-    if (m_set_value && m_set_value->methodPointer) {
-        s_runtime_invoke(m_set_value, itemIdSP, argsVal, &ex);
-        if (ex) {
-            NSLog(@"[QuiverChildID] set_value ex=%p", ex);
-            return;
-        }
-        NSLog(@"[QuiverChildID] itemID set via set_value to JOSIAHVR");
-    } else {
-        s_runtime_invoke(m_SetValue, itemIdSP, argsVal, &ex);
-        if (ex) {
-            NSLog(@"[QuiverChildID] SetValue ex=%p", ex);
-            return;
-        }
-        NSLog(@"[QuiverChildID] itemID set via SetValue to JOSIAHVR");
-    }
-}
 
 
 static void CustomTick()
