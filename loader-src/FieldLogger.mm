@@ -4521,17 +4521,14 @@ static Il2CppObject* CrossbowModded()
     s_field_get_value(crossb, f_attachAnchor, &_attachAnchor);
 
     MethodInfo* m_TryGrabObject = s_get_method_from_name(AttachedItemAnchor, "TryGrabObject", 4);
-    if (!m_TryGrabObject || !m_TryGrabObject->methodPointer) return;
     using t_TryGrabObject = void(*)(Il2CppObject*, NetworkBehaviourId, bool, bool, bool);
     auto TryGrabObject = (t_TryGrabObject)STRIP_FP(m_TryGrabObject->methodPointer);
 
     MethodInfo* m_get_Id = s_get_method_from_name(NetworkBehaviour, "get_Id", 0);
-    if (!m_get_Id || !m_get_Id->methodPointer) return;
     using t_get_Id = NetworkBehaviourId(*)(Il2CppObject*);
     auto get_Id = (t_get_Id)STRIP_FP(m_get_Id->methodPointer);
 
     MethodInfo* m_set_id = s_get_method_from_name(GameplayItemState, "set_id", 0);
-    if (!m_set_id || !m_set_id->methodPointer) return;
     using t_set_id = void(*)(Il2CppObject*, Il2CppString*);
     auto set_id = (t_set_id)STRIP_FP(m_set_id->methodPointer);
     
@@ -4704,7 +4701,7 @@ static void CustomTick()
         if(!CrossbowsDone)
         {
             CrossbowModded();
-            PatchAppState();
+            //PatchAppState();
             CrossbowsDone = true;
         }
     }
