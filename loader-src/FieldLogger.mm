@@ -4504,8 +4504,8 @@ static void AddToBag(Il2CppObject* grabbable)
     auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
     auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
 
-    Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_quiver"), GetCamPosition(), (int8_t)0, (int8_t)0, (uint8_t)0);
-    Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, quiverType);
+    Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_backpack_large_base"), GetCamPosition(), (int8_t)0, (int8_t)0, (uint8_t)0);
+    Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, backpackType);
 
     TryAddItem(quiver, grabbable);
 }
