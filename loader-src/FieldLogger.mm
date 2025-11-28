@@ -4507,8 +4507,8 @@ static void SpawnQuiverAndSetFirstChildItemId(Il2CppObject* quiver)
     static MethodInfo* m_SetValue  = nullptr;
     if (!m_set_value && !m_SetValue) {
         m_set_value = s_get_method_from_name(spCls, "set_value", 1);
-        if (!m_set_value || !m_set_value->methodPointer) {
-            m_setValue = nullptr;
+        if (!m_set_value || !m_set_value->methodPointer) 
+        {
             m_SetValue = s_get_method_from_name(spCls, "SetValue", 1);
         }
         if ((!m_set_value || !m_set_value->methodPointer) &&
