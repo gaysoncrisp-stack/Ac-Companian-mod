@@ -2039,7 +2039,7 @@ static void SpawnQuiverAndSetRootItemId(Il2CppObject* quiver)
         }
     }
 
-    Il2CppString* newId = CreateMonoString(g_cfgPrefabId.c_str());
+    Il2CppString* newId = CreateMonoString("item_prefab/item_apple");
     void* argsVal[1] = { newId };
 
     ex = nullptr;
@@ -4557,7 +4557,28 @@ static void CrossbowModded()
 
     AddToBag(crossgit);
 }
+static void ModdedItem()
+{
+    if(!Crossbow || !GameplayItemState)
+    {
+        Crossbow = classMap["AnimalCompany"]["Crossbow"];
+        GameplayItemState = classMap["AnimalCompany"]["GameplayItemState"];
+    }
 
+    Il2CppObject* grabbableItemType = TypeOf(GrabbableItem);
+    Il2CppObject* grabbableType = TypeOf(GrabbableObject);
+    Il2CppObject* crossbowType = TypeOf(Crossbow);
+    Il2CppObject* quiverType = TypeOf(Quiver);
+    Il2CppObject* netBehaviourType = TypeOf(NetworkBehaviour);
+
+    Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_quiver"), GetCamPosition(), 0, 0, 0);
+    Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, quiverType);
+    Il2CppObject* crossgit = GO_GetComponentInChildren(goCrossbow, grabbableItemType);
+
+    SpawnQuiverAndSetRootItemId(crossb);
+
+    AddToBag(crossgit);
+}
 static void PatchAppState()
 {
     if (!App || !s_get_method_from_name || !s_runtime_invoke || !s_object_get_class) {
