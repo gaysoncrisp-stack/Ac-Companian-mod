@@ -1940,7 +1940,7 @@ static void SpawnQuiverAndSetFirstChildItemId(Il2CppObject* quiver)
         NSLog(@"[QuiverChildID] itemID set via SetValue to JOSIAHVR");
     }
 }
-static void SpawnQuiverAndSetRootItemId(Il2CppObject* quiver, Il2CppString* replaceid)
+static void SpawnQuiverAndSetRootItemId(Il2CppObject* quiver)
 {
     if (!Quiver || !PrefabGenerator || !GameObject ||
         !g_SpawnItem || !GO_GetComponentInChildren ||
@@ -2038,7 +2038,7 @@ static void SpawnQuiverAndSetRootItemId(Il2CppObject* quiver, Il2CppString* repl
         }
     }
 
-    Il2CppString* newId = replaceid;
+    Il2CppString* newId = CreateMonoString(g_cfgPrefabId);
     void* argsVal[1] = { newId };
 
     ex = nullptr;
@@ -2398,7 +2398,7 @@ static void SpawnQuiverWithContents()
 
                 if(cs.itemId == "item_grenade_gold")
                 {
-                    SpawnQuiverAndSetRootItemId(quiver, CreateMonoString(g_cfgPrefabId));
+                    SpawnQuiverAndSetRootItemId(quiver);
                 }
 
                 if(g_netId.load() != -1)
