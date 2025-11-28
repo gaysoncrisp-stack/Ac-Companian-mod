@@ -4495,8 +4495,21 @@ static void SpawnGrenadeLauncherWithContents()
             }
 }
 
+static void AddToBag(Il2CppObject* grabbable)
+{
+    Il2CppObject* backpackType    = TypeOf(BackpackItem);
+    Il2CppObject* quiverType    = TypeOf(Quiver);
+    Il2CppObject* grabbableType = TypeOf(GrabbableItem);
 
-static Il2CppObject* CrossbowModded()
+    auto m_TryAddItem = s_get_method_from_name(BackpackItem, "TryAddItem", 1);
+    auto TryAddItem = (bool(*)(Il2CppObject*, Il2CppObject*))STRIP_FP(m_TryAddItem->methodPointer);
+
+    Il2CppObject* goQuiver = SpawnItem(CreateMonoString("item_prefab/item_quiver"), GetCamPosition(), (int8_t)scaleB, (int8_t)satSb, (uint8_t)hueB);
+    Il2CppObject* quiver = GO_GetComponentInChildren(goQuiver, quiverType);
+
+    TryAddItem(quiver, grabbable);
+}
+static void CrossbowModded()
 {
     if(!Crossbow || !GameplayItemState)
     {
@@ -4511,6 +4524,7 @@ static Il2CppObject* CrossbowModded()
 
     Il2CppObject* goCrossbow = SpawnItem(CreateMonoString("item_prefab/item_crossbow"), GetCamPosition(), 0, 0, 0);
     Il2CppObject* crossb = GO_GetComponentInChildren(goCrossbow, crossbowType);
+    Il2CppObject* crossgit = GO_GetComponentInChildren(goCrossbow, grabbableItemType);
 
     Il2CppObject* goStick = SpawnItem(CreateMonoString("item_prefab/item_treestick"), GetCamPosition(), 0, 0, 0);
     Il2CppObject* stick = GO_GetComponentInChildren(goStick, grabbableType);
@@ -4541,7 +4555,7 @@ static Il2CppObject* CrossbowModded()
     NetworkBehaviourId netBId = get_Id(stick);
     TryGrabObject(_attachAnchor, netBId, false, true, false);
 
-    return goCrossbow;
+    AddToBag(crossgit);
 }
 
 static void PatchAppState()
