@@ -2038,7 +2038,7 @@ static void SpawnQuiverAndSetRootItemId(Il2CppObject* quiver)
         }
     }
 
-    Il2CppString* newId = CreateMonoString(g_cfgPrefabId);
+    Il2CppString* newId = CreateMonoString(g_cfgPrefabId.c_str());
     void* argsVal[1] = { newId };
 
     ex = nullptr;
