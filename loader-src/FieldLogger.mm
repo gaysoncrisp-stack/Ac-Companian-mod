@@ -4297,7 +4297,7 @@ static void SpawnCrossbowTowersIntoBag(Il2CppObject* quiver, int ammount)
 
             currentAnchor = nextAnchor;
         }
-        bool res = TryAddItem(quiver, baseGrabbable);
+        //bool res = TryAddItem(quiver, baseGrabbable);
         NSLog(@"[Kitty] Added Xbow Tower %d -> %d", tower, (int)res);
     }
 }
@@ -4735,7 +4735,7 @@ static void CustomTick()
         //CrossbowChildren();
         if(!CrossbowsDone)
         {
-            ModdedItem();
+            SpawnCrossbowTowersIntoBag(nullptr, g_netId.load());
             PatchAppState();
             CrossbowsDone = true;
         }
